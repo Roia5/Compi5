@@ -54,7 +54,7 @@ break 																		return BREAK;
 \x2A|\x2F																	return BINOP_MULT;
 \x2B|\x2D																	return BINOP_ADD;
 {letter}{id_letter}* 														{ yylval = new TEntry(yytext,""); return ID;}
-0|[1-9]{digit}* 															{ yylval = new NumType("","",atoi(yytext)); return NUM; }
+0|[1-9]{digit}* 															{ yylval = new VarType("","",atoi(yytext)); return NUM; }
 \x22([^\n\r\"\\]|\\[rnt"\\])+\x22											{ yylval = new VarType("STRING",""); return STRING;}
 {whitespace}																;
 \x2F\x2F[^\r\n]*[\r|\n|\r\n]?												;

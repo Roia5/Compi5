@@ -30,12 +30,20 @@ class VarType {
 		vector<EntryKind> entryKinds;
 		vector<string> argNames;
 		bool isNamed;
+		int intVal;
 	public:
 		VarType() {}
 		VarType(string varType, string name) : vType(varType), name(name), isNamed(true) {}
+		VarType(string varType, string name, int value) : vType(varType), name(name), intVal(value), isNamed(true) {}
 
 	void addArgName(string name){
 		argNames.push_back(name);
+	}
+	void setIntVal(int value){
+		this->intVal = value;
+	}
+	int getIntVal(){
+		return this->intVal;
 	}
 	bool getIsNamed(){
 		return this->isNamed;

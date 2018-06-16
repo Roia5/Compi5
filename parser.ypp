@@ -114,7 +114,7 @@ FormalDecl :		Type ID										{$$->setType($1->getType());
 																$$->addArgName($2->getName());
 																dynamic_cast<TEntry*>($2)->setKind(Var);}
 
-		| Type ID LBRACK NUM RBRACK								{int number = dynamic_cast<NumType*>($4)->getValue();
+		| Type ID LBRACK NUM RBRACK								{int number = $4->getIntVal();
 																if(number <= 0 || number >= 256){
 																	errorInvalidArraySize(yylineno,$2->getName()); 
 																	PopAllStacks();
@@ -127,7 +127,7 @@ FormalDecl :		Type ID										{$$->setType($1->getType());
 																$$->addArgName($2->getName());
 																}
 
-		| Type ID LBRACK NUM B RBRACK							{int number = dynamic_cast<NumType*>($4)->getValue();
+		| Type ID LBRACK NUM B RBRACK							{int number = $4->getIntVal();
 																if(number >= 256){
 																	errorByteTooLarge(yylineno, numberToString(number));
 																	PopAllStacks();
@@ -186,7 +186,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																	PopAllStacks();
 																	exit(0);
 																}
-																int number = dynamic_cast<NumType*>($4)->getValue();
+																int number = $4->getIntVal();
 
 																if(number <= 0 || number >= 256){
 																	errorInvalidArraySize(yylineno,$2->getName()); 
@@ -204,7 +204,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																	PopAllStacks();
 																	exit(0);
 																}
-																int number = dynamic_cast<NumType*>($4)->getValue();
+																int number = $4->getIntVal();
 																if(number >= 256){
 																	errorByteTooLarge(yylineno, numberToString(number));
 																	PopAllStacks();
@@ -511,7 +511,10 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															if(($1->getType() == "INT") || ($3->getType() == "INT"))
 																$$->setType("INT");
 															else 
-																$$->setType("BYTE");}
+																$$->setType("BYTE");
+															$$->setIntVal($1->getIntVal() + $3->getIntVal());	
+																
+																}
 		| ID												{
 															if(!isIdentifierExists($1->getName())){
 																	errorUndef(yylineno, $1->getName());
@@ -529,14 +532,16 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															
 															}
 		| Call												{$$->setType($1->getType());}
-		| NUM												{$$->setType("INT");}
+		| NUM												{$$->setType("INT");
+															$$->setIntVal($1->getIntVal());}
 		| NUM B												{$$->setType("BYTE");
-															int val = dynamic_cast<NumType*>($1)->getValue();
+															int val = $1->getIntVal();
 															if(val > 255){
 																errorByteTooLarge(yylineno, numberToString(val)); 
 																PopAllStacks();
 																exit(0);
-															}	
+															}
+															$$->setIntVal($1->getIntVal());	
 															}
 		| STRING											
 		| TRUE 												{$$->setType("BOOL");}
