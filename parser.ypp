@@ -1,0 +1,592 @@
+%{
+    #include "attributes.hpp"
+    #include <iostream>
+	#include <stdlib.h>
+	#include <stdio.h>
+	#include <vector>
+	#include "output.hpp"
+	
+    using namespace std;
+	using namespace output;
+    
+	#define YYERROR_VERBOSE 1
+	#define YYDEBUG 1
+    int yylex();
+	
+	extern int yylineno;
+
+    void yyerror(char const*);
+	vector<bool> while_stack (false); //TBD
+	vector<bool> funcs_stack;
+
+	string returnTypeFound = "return not done";
+	bool foundMain = false;
+	#ifndef YYSTYPE
+	#define YYSTYPE VarType*
+	#endif
+%}
+
+%token VOID INT BYTE B BOOL TRUE FALSE RETURN WHILE BREAK SC COMMA LBRACE RBRACE ID NUM STRING 
+%nonassoc RELOP_NORMAL
+%left OR AND LBRACK RBRACK LPAREN RPAREN BINOP_ADD
+%left BINOP_MULT RELOP_EQUAL
+%right ASSIGN NOT
+%nonassoc IF
+%nonassoc ELSE
+	
+
+%%
+
+Program : 		Funcs	{
+						}
+;
+
+Funcs :		/*epsilon*/
+		| FuncDecl Funcs
+;
+
+FuncDecl :		RetType ID LPAREN Formals RPAREN {
+													string returnType = $1->getType()+"_"+$4->getType();
+													InsertFunction($2->getName(), returnType,$4->getEntryKinds(), $4->getArgNames());
+													$2->setType(returnType);
+													dynamic_cast<TEntry*>($2)->setKind(Func);
+													if(returnType == "VOID_VOID" && $2->getName()=="main"){
+														if(foundMain){
+															errorMismatch(yylineno); 
+															PopAllStacks();
+															exit(0);
+														}
+														foundMain = true;
+													}
+												} LBRACE Statements RBRACE { funcs_stack.pop_back();
+																				string functionType = $1->getType();
+																				if(returnTypeFound!="return not done"){
+																					if((returnTypeFound!=functionType) && (functionType!="INT" || returnTypeFound!="BYTE")){//todo more cases
+																						errorMismatch(yylineno); 
+																						PopAllStacks();
+																						exit(0);
+																					}
+																				}
+																				returnTypeFound = "return not done";
+
+																			ExitScope();
+																			}
+																			
+;
+
+RetType :		Type {  funcs_stack.push_back(false); $$ = new VarType(); $$->setType($1->getType());}
+		| VOID {  funcs_stack.push_back(true); $$ = new VarType(); $$->setType("VOID");}
+;
+
+Formals :		/*epsilon*/										{$$ = new VarType();
+																$$->setType("VOID");
+																vector<EntryKind> vec;
+																$$->setEntryKinds(vec);
+																vector<string> names;
+																$$->setArgNames(names);
+																}
+		| FormalsList											{$$ = new VarType();
+																$$->setType($1->getType());
+																$$->setEntryKinds($1->getEntryKinds());
+																$$->setArgNames($1->getArgNames());}
+;
+
+FormalsList :		FormalDecl									{$$ = new VarType(); $$->setType($1->getType());
+																$$->addEntryKind($1->getEntryKinds()[0]);
+																$$->addArgName($1->getArgNames()[0]);}
+		| FormalDecl COMMA FormalsList							{$$->setType($1->getType() + "," + $3->getType());
+																vector<EntryKind> vec;
+																vec.insert(vec.begin(),$1->getEntryKinds()[0]);
+																vector<EntryKind> v2 = $3->getEntryKinds();
+																vec.insert(vec.end(), v2.begin(), v2.end());
+																$$->setEntryKinds(vec);
+
+																vector<string> vec2;
+																vec2.insert(vec2.begin(),$1->getArgNames()[0]);
+																vector<string> v3 = $3->getArgNames();
+																vec2.insert(vec2.end(), v3.begin(), v3.end());
+																$$->setArgNames(vec2);
+																}	
+;
+
+FormalDecl :		Type ID										{$$->setType($1->getType());
+																$$->addEntryKind(Var);
+																$$->addArgName($2->getName());
+																dynamic_cast<TEntry*>($2)->setKind(Var);}
+
+		| Type ID LBRACK NUM RBRACK								{int number = dynamic_cast<NumType*>($4)->getValue();
+																if(number <= 0 || number >= 256){
+																	errorInvalidArraySize(yylineno,$2->getName()); 
+																	PopAllStacks();
+																	exit(0);
+																}	
+																string valString = numberToString(number);
+																$$->setType($1->getType() + "[" + valString + "]");
+																dynamic_cast<TEntry*>($2)->setKind(Var);
+																$$->addEntryKind(Array);
+																$$->addArgName($2->getName());
+																}
+
+		| Type ID LBRACK NUM B RBRACK							{int number = dynamic_cast<NumType*>($4)->getValue();
+																if(number >= 256){
+																	errorByteTooLarge(yylineno, numberToString(number));
+																	PopAllStacks();
+																	exit(0);
+																}
+																if(number <= 0){
+																	errorInvalidArraySize(yylineno,$2->getName()); 
+																	//errorByteTooLarge(yylineno, numberToString(number));
+																	PopAllStacks();
+																	exit(0);
+																}	
+																string valString = numberToString(number);
+																$$->setType($1->getType() + "[" + valString + "]");
+																dynamic_cast<TEntry*>($2)->setKind(Var);
+																$$->addEntryKind(Array);
+																$$->addArgName($2->getName());}
+;
+
+Statements :		Statement
+		| Statements Statement
+;
+
+Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
+		| Type ID SC											{
+																if(isIdentifierExists($2->getName())){
+																	errorDef(yylineno, $2->getName());
+																	PopAllStacks();
+																	exit(0);
+																}
+																$2->setType($1->getType()); 
+																dynamic_cast<TEntry*>($2)->setKind(Var);
+																InsertVar($2->getName(),$1->getType());
+																}
+		| Type ID ASSIGN Exp SC									{
+																//cout << " " << $2->getName() << endl;
+																if(isIdentifierExists($2->getName())){
+																	//cout << "blasbdlasd " << $2->getName() << endl;
+																	errorDef(yylineno, $2->getName());
+																	PopAllStacks();
+																	exit(0);
+																}
+																if($1->getType() != $4->getType()){
+																	if($1->getType()!="INT" || $4->getType()!="BYTE"){
+																		errorMismatch(yylineno);
+																		PopAllStacks();
+																		exit(0);
+																	}	
+																}
+																$2->setType($1->getType()); //4
+																dynamic_cast<TEntry*>($2)->setKind(Var);
+																InsertVar($2->getName(),$1->getType());
+																}
+		| Type ID LBRACK NUM RBRACK SC							{
+																if(isIdentifierExists($2->getName())){
+																	errorDef(yylineno, $2->getName());
+																	PopAllStacks();
+																	exit(0);
+																}
+																int number = dynamic_cast<NumType*>($4)->getValue();
+
+																if(number <= 0 || number >= 256){
+																	errorInvalidArraySize(yylineno,$2->getName()); 
+																	PopAllStacks();
+																	exit(0);
+																}	
+																string valString = numberToString(number);
+																$2->setType($1->getType() + "[" + valString + "]");
+																dynamic_cast<TEntry*>($2)->setKind(Array);
+																InsertArray($2->getName(),$1->getType(), number);
+																}
+		| Type ID LBRACK NUM B RBRACK SC						{
+																if(isIdentifierExists($2->getName())){
+																	errorDef(yylineno, $2->getName());
+																	PopAllStacks();
+																	exit(0);
+																}
+																int number = dynamic_cast<NumType*>($4)->getValue();
+																if(number >= 256){
+																	errorByteTooLarge(yylineno, numberToString(number));
+																	PopAllStacks();
+																	exit(0);
+																}
+																if(number <= 0){
+																	errorInvalidArraySize(yylineno,$2->getName()); 
+																	//errorByteTooLarge(yylineno, numberToString(number));
+																	PopAllStacks();
+																	exit(0);
+																}	
+																string valString = numberToString(number);
+																$2->setType($1->getType() + "[" + valString + "]");
+																dynamic_cast<TEntry*>($2)->setKind(Array);
+																InsertArray($2->getName(),$1->getType(), number);
+																}
+		| ID ASSIGN Exp SC										{
+																TEntry* t = findByID($1->getName());
+																if(!t){
+																	errorUndef(yylineno, $1->getName());
+																	PopAllStacks();
+																	exit(0);
+																}
+																/*if(t->getKind() == Func){	//maybe remove
+																	errorUndef(yylineno, $1->getName());
+																	exit(0);
+																}*/
+																if(t->getKind() == Array){
+																	size_t pos = $3->getName().find("[");
+																	if (pos != std::string::npos){
+																		errorMismatch(yylineno); 
+																		PopAllStacks();
+																		exit(0);
+																	}	
+																	TEntry* t2 = findByID($3->getName());
+																	if(!t2){
+																		errorUndef(yylineno, $1->getName());
+																		PopAllStacks();
+																		exit(0);
+																	}
+																	if(t2->getKind() != Array){
+																		errorMismatch(yylineno); 
+																		PopAllStacks();
+																		exit(0);
+																	}
+																	/*size_t pos = $2->getType().find("[");
+																	if (pos != std::string::npos){
+																		errorMismatch(yylineno); 
+																		exit(0);
+																	}*/	
+																	if((t->getType()!=t2->getType()) || 
+																		(t->getArrSize()!=t2->getArrSize())){
+																		//cout << t->getType() << " " << t2->getType() << " " << t->getArrSize() << " " << t2->getArrSize() << endl;
+																		errorMismatch(yylineno); 
+																		PopAllStacks();
+																		exit(0);
+																	}
+																}
+																else if(t->getKind() == Func){
+																		errorUndef(yylineno, $1->getName());
+																		PopAllStacks();
+																		exit(0);
+																}
+																else {
+																	if((t->getType()!=$3->getType()) &&
+																	(t->getType()!="INT" && $3->getType()!="BYTE")){
+																			errorMismatch(yylineno); 
+																			PopAllStacks();
+																			exit(0);
+																		}	
+																	}
+																}
+
+																
+
+		| ID LBRACK Exp RBRACK ASSIGN Exp SC					{if($3->getType()!="BYTE" && $3->getType()!="INT"){
+																	errorMismatch(yylineno);
+																	PopAllStacks();
+																	exit(0);
+																}
+																TEntry* t = findByID($1->getName());
+																if(!t){
+																	errorUndef(yylineno, $1->getName());
+																	PopAllStacks();
+																	exit(0);
+																}
+																if(t->getKind() != Array){
+																	errorMismatch(yylineno);
+																	PopAllStacks();
+																	exit(0);
+																}	
+																//$$->setType($1->getType().substr(0, position));	//find retValue type
+																if((t->getType() != $6->getType())&&((t->getType() != "INT") ||
+																	($6->getType() != "BYTE"))){
+																	errorMismatch(yylineno);
+																	PopAllStacks();
+																	exit(0);
+																}	
+																}
+		| Call SC
+		| RETURN SC {
+			if (funcs_stack.empty() || !funcs_stack.back()) {
+				errorMismatch(yylineno);
+				PopAllStacks();
+				exit(0);
+			}
+			returnTypeFound = "VOID";
+		}
+		| RETURN Exp SC {
+			if (funcs_stack.empty() || funcs_stack.back()) {
+				errorMismatch(yylineno);
+				PopAllStacks();
+				exit(0);
+			}
+			returnTypeFound = $2->getType();
+			if($2->getIsNamed()) {
+				TEntry* t = findByID($2->getName());
+				if(t){
+					size_t position = $2->getType().find("[");
+					if (position != std::string::npos){
+						errorMismatch(yylineno); 
+						PopAllStacks();
+						exit(0);
+					}
+					if(t->getKind() == Func) {
+						if (t->getType() != returnTypeFound) {
+							if (t->getType() != "INT" || returnTypeFound != "BYTE") {
+								errorMismatch(yylineno);
+								PopAllStacks();
+								exit(0);
+							}
+						}
+					}
+				}
+			}
+		}
+		| IF  LPAREN Exp RPAREN {
+			if($3->getType()!="BOOL"){
+				errorMismatch(yylineno);
+				PopAllStacks();
+				exit(0);
+			}
+			StartScope();} Statement {ExitScope();} ElsePart		
+		| WHILE LPAREN Exp RPAREN 					{ if($3->getType()!="BOOL"){
+														errorMismatch(yylineno);
+														PopAllStacks();
+														exit(0);
+													} while_stack.push_back(true); StartScope(); } 
+		Statement 																{ while_stack.pop_back(); 
+																				if($3->getType()!="BOOL"){
+																					errorMismatch(yylineno); 
+																					PopAllStacks();
+																					exit(0);
+																				}
+																				ExitScope();	
+																				}
+		| BREAK SC {
+			if (!while_stack.back()) {
+				errorUnexpectedBreak(yylineno);
+				PopAllStacks();
+				exit(0);
+			}
+		}
+;
+ElsePart :		/*epsilon*/ %prec IF
+		| ELSE {StartScope();} Statement {ExitScope();} %prec ELSE
+;
+Call :		ID LPAREN ExpList RPAREN						{TEntry* t;
+															if($1->getName()=="print"){
+																$$->setType("VOID");
+																//$1->setType($1->getType() + "_" + $3->getType());
+																if($3->getType()!="STRING"){
+																	string temps = $1->getName();
+																	vector<string> tempv;
+																	tempv.push_back("STRING");
+																	errorPrototypeMismatch(yylineno, temps, tempv);
+																	PopAllStacks();
+																	exit(0);
+																}	
+															}
+															else if($1->getName()=="printi"){
+																$$->setType("VOID");
+																//$1->setType($1->getType() + "_" + $3->getType());
+																if($3->getType()!="INT" && $3->getType()!="BYTE"){
+																	string temps = $1->getName();
+																	vector<string> tempv;
+																	tempv.push_back("INT");
+																	errorPrototypeMismatch(yylineno, temps, tempv);
+																	PopAllStacks();
+																	exit(0);
+																}
+																
+															}
+															else {
+																//cout << "here" << endl;
+																t = findByID($1->getName());
+																//cout << "here2" << endl;
+																if(t->getKind()!=Func){
+																	//cout << "here3" << endl;
+																	errorUndefFunc(yylineno, $1->getName());
+																	PopAllStacks();
+																	exit(0);
+																}	
+																//cout << "here4" << endl;
+																$$->setType(t->getType());	//find retValue type
+															}
+																//cout << "here5" << endl;
+																t = findByID($1->getName());
+															if(!doesFunctionExist($1->getName(), $1->getType() + "_" + $3->getType())){
+																vector<TEntry> vecEntry = t->getFuncArgs();
+																vector<string> vecTypes;
+																for(int i=0;i<vecEntry.size();i++){
+																		if(vecEntry[i].getKind() == Array){
+																			vecTypes.push_back(vecEntry[i].getType() + "[" + numberToString(vecEntry[i].getArrSize()) + "]");
+																		}
+																		else {
+																			vecTypes.push_back(vecEntry[i].getType());
+																		}
+																}
+																errorPrototypeMismatch(yylineno, $1->getName(), vecTypes); 
+																PopAllStacks();
+																exit(0);
+															}	
+															//cout << "here7" << endl;
+															
+															}
+		| ID LPAREN RPAREN									{
+															//cout << "here1 " << endl;
+															TEntry* t = findByID($1->getName());
+															if(!t || t->getKind()!=Func){
+																//cout << "here2 " << endl;
+																errorUndefFunc(yylineno, $1->getName());
+																PopAllStacks();
+																exit(0);
+															}
+															//cout << "here3 " << endl;
+															$$->setType(t->getType());
+															if(!doesFunctionExist($1->getName(), t->getType() + "_")){
+																	//cout << "here4 " << endl;
+																	//std::vector<string> vec = splitType(t->getType());
+																	vector<TEntry> vecEntry = t->getFuncArgs();
+																	vector<string> vecTypes;
+																	for(int i=0;i<vecEntry.size();i++){
+																		if(vecEntry[i].getKind() == Array){
+																			vecTypes.push_back(vecEntry[i].getType() + "[" + numberToString(vecEntry[i].getArrSize()) + "]");
+																		}
+																		else {
+																			vecTypes.push_back(vecEntry[i].getType());
+																		}
+																	}
+																	errorPrototypeMismatch(yylineno, $1->getName(), vecTypes); 
+																	PopAllStacks();
+																	exit(0);
+																}	
+															}
+;
+
+ExpList :		Exp											{$$->setType($1->getType());}
+		| Exp COMMA ExpList									{$$->setType($1->getType() + "," + $2->getType());}
+;
+
+Type :		INT
+		| BYTE
+		| BOOL
+;
+
+Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
+															//$$->setName($2->getName());
+															}
+		| ID LBRACK Exp RBRACK								{
+															TEntry* t = findByID($1->getName());
+															if(!t ){
+																errorUndef(yylineno, $1->getName());
+																PopAllStacks();
+																exit(0);
+															}
+															if($3->getType()!="INT" && $3->getType()!="BYTE" || t->getKind()!=Array){
+																errorMismatch(yylineno); 
+																PopAllStacks();
+																exit(0);
+															}
+															$$->setName($1->getName() + "[]");	
+															$$->setType(t->getType());}
+		| Exp BINOP_MULT Exp								{
+															
+															if(($1->getType() != "INT" && $1->getType() != "BYTE")
+																||($3->getType() != "INT" && $3->getType() != "BYTE")){
+																errorMismatch(yylineno); 
+																PopAllStacks();
+																exit(0);
+															}	
+															if(($1->getType() == "INT") || ($3->getType() == "INT"))
+																$$->setType("INT");
+															else 
+																$$->setType("BYTE");}
+
+		| Exp BINOP_ADD Exp									{
+															if(($1->getType() != "INT" && $1->getType() != "BYTE")
+																||($3->getType() != "INT" && $3->getType() != "BYTE")){
+																errorMismatch(yylineno);
+																PopAllStacks();
+																exit(0);
+															}	
+															if(($1->getType() == "INT") || ($3->getType() == "INT"))
+																$$->setType("INT");
+															else 
+																$$->setType("BYTE");}
+		| ID												{
+															if(!isIdentifierExists($1->getName())){
+																	errorUndef(yylineno, $1->getName());
+																	PopAllStacks();
+																	exit(0);
+																}
+															$$->setName($1->getName());
+															TEntry* t = findByID($1->getName());
+															if(t->getKind() == Array){
+																$$->setType(t->getType() + "[" + numberToString(t->getArrSize()) + "]"); 
+															}
+															else {
+																$$->setType(t->getType());
+															}
+															
+															}
+		| Call												{$$->setType($1->getType());}
+		| NUM												{$$->setType("INT");}
+		| NUM B												{$$->setType("BYTE");
+															int val = dynamic_cast<NumType*>($1)->getValue();
+															if(val > 255){
+																errorByteTooLarge(yylineno, numberToString(val)); 
+																PopAllStacks();
+																exit(0);
+															}	
+															}
+		| STRING											
+		| TRUE 												{$$->setType("BOOL");}
+		| FALSE 											{$$->setType("BOOL");}
+
+		| NOT Exp 											{if($2->getType() != "BOOL"){
+																errorMismatch(yylineno); 
+																PopAllStacks();
+																exit(0);
+															}	
+															$$->setType("BOOL");}
+
+		| Exp AND Exp 										{if($1->getType() != "BOOL" || $3->getType() != "BOOL") {
+																errorMismatch(yylineno); 
+																PopAllStacks();
+																exit(0);
+															}	
+															$$->setType("BOOL");}
+
+		| Exp OR Exp 										{if($1->getType() != "BOOL" || $3->getType() != "BOOL") {
+																errorMismatch(yylineno); 
+																PopAllStacks();
+																exit(0);
+															}	
+															$$->setType("BOOL");}
+
+		| Exp RELOP_NORMAL Exp 								{if(($1->getType() != "INT" && $1->getType() != "BYTE")
+																||($3->getType() != "INT" && $3->getType() != "BYTE")){
+																errorMismatch(yylineno);
+																PopAllStacks();
+																exit(0);
+															}	
+															$$->setType("BOOL");}
+
+		| Exp RELOP_EQUAL Exp 								{if(($1->getType() != "INT" && $1->getType() != "BYTE")
+																||($3->getType() != "INT" && $3->getType() != "BYTE")){
+																errorMismatch(yylineno); 
+																PopAllStacks();
+																exit(0);
+															}	
+															$$->setType("BOOL");}
+;
+
+%%
+
+int main() {
+	//yydebug = 1;
+	__init_stacks();
+	int status = yyparse();
+	__destroy_stacks();
+    return status;
+}
+void yyerror(const char*) { errorSyn(yylineno); exit(0); }
