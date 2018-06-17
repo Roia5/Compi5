@@ -65,4 +65,8 @@ class emitter {
 		int bge(string rsrc, string src, string label) {
 			return condjump("bge", rsrc, src, label);
 		}
+		
+		int nop() {
+			return emit("nop");
+		}
 }
