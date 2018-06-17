@@ -58,7 +58,7 @@ class emitter {
 		//	CodeBuffer.emit("mul " + rdest + ", " + rsrc + ", " + src);
 		//}
 		
-		//
+		//copy contect of source register to destination register
 		int mov(string rdest, string rsrc) {
 			return CodeBuffer.emit("move " + rdest + ", " + rsrc);
 		}
