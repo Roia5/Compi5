@@ -93,15 +93,16 @@ class emitter {
 			return condjump("bge", rsrc, src, label);
 		}
 		
-		//
+		//jump to label
 		int jmp(string label) {
 			return CodeBuffer.emit("j " + label);
 		}
 		
-		//
-		//int jal() {
-		//	
-		//}
+		//jump to label and save pre-jump address to ra
+		int jal(string label) {
+			return CodeBuffer.emit("jal " + label);
+			
+		}
 		
 		//no operation
 		int nop() {
