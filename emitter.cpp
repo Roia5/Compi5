@@ -55,6 +55,7 @@ class emitter {
 		
 		//
 		int div(string rdest, string rsrc, string src) {
+			//TODO: check if src!=0
 			return action3op("div", rdest, rsrc, src);
 		}
 		
