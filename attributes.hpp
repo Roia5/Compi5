@@ -32,6 +32,7 @@ class VarType {
 		bool isNamed;
 		int intVal;
 		bool boolVal;
+		string register;
 		string op;
 	public:
 		VarType() {}
@@ -41,6 +42,15 @@ class VarType {
 		VarType(string varType, string name, bool value) : vType(varType), name(name), boolVal(value), isNamed(true) {}
 	void setBoolVal(bool value){
 		this->boolVal = value;
+	}
+	bool getBoolVal(){
+		return this->boolVal;
+	}
+	void setRegister(string reg){
+		this->register = reg;
+	}
+	string getRegister(){
+		return this->register;
 	}
 	void addArgName(string name){
 		argNames.push_back(name);
@@ -113,6 +123,8 @@ class TEntry : public VarType{
 		TEntry() {}
 		TEntry(string Name, string Type) : VarType(Type,Name) {}
 		TEntry(string Name, string Type, int Offset) : VarType(Type,Name), idOffset(Offset), kind(Var), arrSize(1) {} //var
+		TEntry(string Name, string Type, int Offset, int value) : VarType(Type,Name,value), idOffset(Offset), kind(Var), arrSize(1) {} //int var
+		TEntry(string Name, string Type, int Offset, bool value) : VarType(Type,Name,value), idOffset(Offset), kind(Var), arrSize(1) {} //bool var
 		TEntry(string Name, string Type, int Size, int Offset) : VarType(Type,Name), idOffset(Offset), kind(Array), arrSize(Size) {} //array
 		TEntry(string Name, string RetType, vector<TEntry> FuncArgs) : VarType(RetType,Name), kind(Func), funcArgs(FuncArgs) {} //function TBD: what to do with offset
 
@@ -149,7 +161,7 @@ int __init_stacks();
 
 int __destroy_stacks();
 
-int InsertVar(string Name, string Type);
+int InsertVar(string Name, string Type, VarType* t);
 
 vector<string> getArgsTypes(TEntry);
 

@@ -49,8 +49,15 @@ break 																		return BREAK;
 \x5B																		return LBRACK;
 \x5D																		return RBRACK;
 \x3D 																		return ASSIGN;
-\x3D\x3D|\x21\x3D										 					return RELOP_EQUAL;
-\x3C|\x3E|\x3C\x3D|\x3E\x3D 												return RELOP_NORMAL;
+\x3D\x3D                                                                    { yylval = new VarType("","","=="); return RELOP_EQUAL;}
+\x21\x3D                                                                    { yylval = new VarType("","","!="); return RELOP_EQUAL;}
+
+
+
+\x3C                                                                        { yylval = new VarType("","","<"); return RELOP_NORMAL;}
+\x3E                                                                        { yylval = new VarType("","",">"); return RELOP_NORMAL;}
+\x3C\x3D                                                                    { yylval = new VarType("","","<="); return RELOP_NORMAL;}
+\x3E\x3D                                                                    { yylval = new VarType("","",">="); return RELOP_NORMAL;}
 \x2A                                                                        { yylval = new VarType("","","*"); return BINOP_MULT;}
 \x2F                                                                        { yylval = new VarType("","","/"); return BINOP_MULT;}
 \x2B                                                                        { yylval = new VarType("","","+"); return BINOP_ADD;}

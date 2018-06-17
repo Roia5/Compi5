@@ -21,6 +21,9 @@
 
 	string returnTypeFound = "return not done";
 	bool foundMain = false;
+
+	RegisterHandler register_handler;
+	emitter e;
 	#ifndef YYSTYPE
 	#define YYSTYPE VarType*
 	#endif
@@ -164,7 +167,8 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																	$2->setBoolVal(false);
 																}
 																dynamic_cast<TEntry*>($2)->setKind(Var);
-																InsertVar($2->getName(),$1->getType());
+																InsertVar($2->getName(),$1->getType(),$2);
+
 																}
 		| Type ID ASSIGN Exp SC									{
 																//cout << " " << $2->getName() << endl;
@@ -183,7 +187,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																}
 																$2->setType($1->getType()); //4
 																dynamic_cast<TEntry*>($2)->setKind(Var);
-																InsertVar($2->getName(),$1->getType());
+																InsertVar($2->getName(),$1->getType(),$2);
 																}
 		| Type ID LBRACK NUM RBRACK SC							{
 																if(isIdentifierExists($2->getName())){
@@ -233,10 +237,6 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																	PopAllStacks();
 																	exit(0);
 																}
-																/*if(t->getKind() == Func){	//maybe remove
-																	errorUndef(yylineno, $1->getName());
-																	exit(0);
-																}*/
 																if(t->getKind() == Array){
 																	size_t pos = $3->getName().find("[");
 																	if (pos != std::string::npos){
@@ -280,6 +280,12 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																			PopAllStacks();
 																			exit(0);
 																		}	
+																	}
+																	if(t->getType()=="INT" || t->getType()=="BYTE"){
+																		t->setIntVal($3->getIntVal());
+																	}
+																	else {	//BOOL
+																		t->setBoolVal($3->getBoolVal());
 																	}
 																}
 
@@ -477,6 +483,12 @@ Type :		INT
 ;
 
 Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
+															if($2->getType()=="INT" || $2->getType()=="BYTE"){
+																$$->setIntVal($2->getIntVal());
+															}
+															else if($2->getType()=="BOOL"){
+																$$->setBoolVal($2->getBoolVal());
+															}
 															//$$->setName($2->getName());
 															}
 		| ID LBRACK Exp RBRACK								{
@@ -505,11 +517,15 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																$$->setType("INT");
 															else 
 																$$->setType("BYTE");
+															string reg1 = $1->getRegister();
+															string reg2 = $3->getRegister();
 															if($2->getOp()=="*"){
-																$$->setIntVal($1->getIntVal() * $3->getIntVal());	
+																//$$->setIntVal($1->getIntVal() * $3->getIntVal());	
+																mul(reg1,reg1,reg2);
 															}
 															else {
-																$$->setIntVal($1->getIntVal() / $3->getIntVal());	
+																//$$->setIntVal($1->getIntVal() / $3->getIntVal());	
+																div(reg1,reg1,reg2);
 															}	
 																
 															}
@@ -525,11 +541,15 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																$$->setType("INT");
 															else 
 																$$->setType("BYTE");
+															string reg1 = $1->getRegister();
+															string reg2 = $3->getRegister();
 															if($2->getOp()=="+"){
-																$$->setIntVal($1->getIntVal() + $3->getIntVal());	
+																//$$->setIntVal($1->getIntVal() + $3->getIntVal());	
+																e.add(reg1,reg1,reg2);
 															}
 															else {
-																$$->setIntVal($1->getIntVal() - $3->getIntVal());	
+																//$$->setIntVal($1->getIntVal() - $3->getIntVal());	
+																e.sub(reg1,reg1,reg2);
 															}
 															}
 		| ID												{
@@ -546,11 +566,21 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															else {
 																$$->setType(t->getType());
 															}
+															if(t->getType()=="INT" || t->getType()=="BYTE"){
+																$$->setIntVal(t->getIntVal());
+															}
+															else if(t->getType()=="BOOL"){
+																$$->setBoolVal(t->getBoolVal());
+															}
 															
 															}
 		| Call												{$$->setType($1->getType());}
 		| NUM												{$$->setType("INT");
-															$$->setIntVal($1->getIntVal());}
+															$$->setIntVal($1->getIntVal());
+															string reg = register_handler.getAvailReg();
+															e.li(reg,$1->getIntVal());
+															$$->setRegister(reg);
+															}
 		| NUM B												{$$->setType("BYTE");
 															int val = $1->getIntVal();
 															if(val > 255){
@@ -559,31 +589,43 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																exit(0);
 															}
 															$$->setIntVal($1->getIntVal());	
+															string reg = register_handler.getAvailReg();
+															e.li(reg,$1->getIntVal());
+															$$->setRegister(reg);
 															}
 		| STRING											
-		| TRUE 												{$$->setType("BOOL");}
-		| FALSE 											{$$->setType("BOOL");}
+		| TRUE 												{$$->setType("BOOL");
+															$$->setBoolVal(true);}
+		| FALSE 											{$$->setType("BOOL");
+															$$->setBoolVal(false);}
 
 		| NOT Exp 											{if($2->getType() != "BOOL"){
 																errorMismatch(yylineno); 
 																PopAllStacks();
 																exit(0);
 															}	
-															$$->setType("BOOL");}
+															$$->setType("BOOL");
+															$$->setBoolVal(!($2->getBoolVal()));
+															
+															}
 
 		| Exp AND Exp 										{if($1->getType() != "BOOL" || $3->getType() != "BOOL") {
 																errorMismatch(yylineno); 
 																PopAllStacks();
 																exit(0);
 															}	
-															$$->setType("BOOL");}
+															$$->setType("BOOL");
+															$$->setBoolVal($1->getBoolVal() && $3->getBoolVal());
+															}
 
 		| Exp OR Exp 										{if($1->getType() != "BOOL" || $3->getType() != "BOOL") {
 																errorMismatch(yylineno); 
 																PopAllStacks();
 																exit(0);
 															}	
-															$$->setType("BOOL");}
+															$$->setType("BOOL");
+															$$->setBoolVal($1->getBoolVal() || $3->getBoolVal());
+															}
 
 		| Exp RELOP_NORMAL Exp 								{if(($1->getType() != "INT" && $1->getType() != "BYTE")
 																||($3->getType() != "INT" && $3->getType() != "BYTE")){
@@ -591,7 +633,26 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																PopAllStacks();
 																exit(0);
 															}	
-															$$->setType("BOOL");}
+															$$->setType("BOOL");
+															int val1 = $1->getIntVal();
+															int val2 = $3->getIntVal();
+															
+															if($2->getOp()=="<"){
+																$$->setBoolVal(val1<val2);
+															}
+															else if($2->getOp()==">"){
+																$$->setBoolVal(val1>val2);
+															}
+															else if($2->getOp()=="<="){
+																$$->setBoolVal(val1<=val2);
+															}
+															else {
+																$$->setBoolVal(val1>=val2);
+															}
+															
+															
+															
+															}
 
 		| Exp RELOP_EQUAL Exp 								{if(($1->getType() != "INT" && $1->getType() != "BYTE")
 																||($3->getType() != "INT" && $3->getType() != "BYTE")){
@@ -599,7 +660,16 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																PopAllStacks();
 																exit(0);
 															}	
-															$$->setType("BOOL");}
+															$$->setType("BOOL");
+															int val1 = $1->getIntVal();
+															int val2 = $3->getIntVal();
+															if($2->getOp()=="=="){
+																$$->setBoolVal(val1==val3);
+															}
+															else {
+																$$->setBoolVal(val1!=val3);
+															}
+															}
 ;
 
 %%
