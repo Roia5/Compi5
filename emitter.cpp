@@ -54,9 +54,9 @@ class emitter {
 		}
 		
 		//
-		//int div(string rdest, string rsrc, string src) {
-		//	CodeBuffer.emit("mul " + rdest + ", " + rsrc + ", " + src);
-		//}
+		int div(string rdest, string rsrc, string src) {
+			return action3op("div", rdest, rsrc, src);
+		}
 		
 		//copy contect of source register to destination register
 		int mov(string rdest, string rsrc) {
