@@ -31,13 +31,22 @@ class VarType {
 		vector<string> argNames;
 		bool isNamed;
 		int intVal;
+		bool boolVal;
+		string op;
 	public:
 		VarType() {}
 		VarType(string varType, string name) : vType(varType), name(name), isNamed(true) {}
 		VarType(string varType, string name, int value) : vType(varType), name(name), intVal(value), isNamed(true) {}
-
+		VarType(string varType, string name, string op) : vType(varType), name(name), op(op) {}
+		VarType(string varType, string name, bool value) : vType(varType), name(name), boolVal(value), isNamed(true) {}
+	void setBoolVal(bool value){
+		this->boolVal = value;
+	}
 	void addArgName(string name){
 		argNames.push_back(name);
+	}
+	string getOp(){
+		return this->op;
 	}
 	void setIntVal(int value){
 		this->intVal = value;

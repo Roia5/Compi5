@@ -33,8 +33,8 @@ bool 																		{ yylval = new VarType("BOOL",""); return BOOL;}
 and 																		return AND;
 or 																			return OR;
 not 																		return NOT;
-true 																		{ yylval = new VarType("BOOL",""); return TRUE; }
-false 																		{ yylval = new VarType("BOOL",""); return FALSE; }
+true 																		{ yylval = new VarType("BOOL","",true); return TRUE; }
+false 																		{ yylval = new VarType("BOOL","",false); return FALSE; }
 return 																		return RETURN;
 if 																			return IF;
 else 																		return ELSE;
@@ -51,8 +51,10 @@ break 																		return BREAK;
 \x3D 																		return ASSIGN;
 \x3D\x3D|\x21\x3D										 					return RELOP_EQUAL;
 \x3C|\x3E|\x3C\x3D|\x3E\x3D 												return RELOP_NORMAL;
-\x2A|\x2F																	return BINOP_MULT;
-\x2B|\x2D																	return BINOP_ADD;
+\x2A                                                                        { yylval = new VarType("","","*"); return BINOP_MULT;}
+\x2F                                                                        { yylval = new VarType("","","/"); return BINOP_MULT;}
+\x2B                                                                        { yylval = new VarType("","","+"); return BINOP_ADD;}
+\x2D                                                                        { yylval = new VarType("","","-"); return BINOP_ADD;}
 {letter}{id_letter}* 														{ yylval = new TEntry(yytext,""); return ID;}
 0|[1-9]{digit}* 															{ yylval = new VarType("","",atoi(yytext)); return NUM; }
 \x22([^\n\r\"\\]|\\[rnt"\\])+\x22											{ yylval = new VarType("STRING",""); return STRING;}

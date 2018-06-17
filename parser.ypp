@@ -158,6 +158,11 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																	exit(0);
 																}
 																$2->setType($1->getType()); 
+																if($1->getType() == "INT" || $1->getType() == "BYTE")
+																	$2->setIntVal(0);
+																else if($1->getType() == "BOOL"){
+																	$2->setBoolVal(false);
+																}
 																dynamic_cast<TEntry*>($2)->setKind(Var);
 																InsertVar($2->getName(),$1->getType());
 																}
@@ -499,7 +504,15 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															if(($1->getType() == "INT") || ($3->getType() == "INT"))
 																$$->setType("INT");
 															else 
-																$$->setType("BYTE");}
+																$$->setType("BYTE");
+															if($2->getOp()=="*"){
+																$$->setIntVal($1->getIntVal() * $3->getIntVal());	
+															}
+															else {
+																$$->setIntVal($1->getIntVal() / $3->getIntVal());	
+															}	
+																
+															}
 
 		| Exp BINOP_ADD Exp									{
 															if(($1->getType() != "INT" && $1->getType() != "BYTE")
@@ -512,9 +525,13 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																$$->setType("INT");
 															else 
 																$$->setType("BYTE");
-															$$->setIntVal($1->getIntVal() + $3->getIntVal());	
-																
-																}
+															if($2->getOp()=="+"){
+																$$->setIntVal($1->getIntVal() + $3->getIntVal());	
+															}
+															else {
+																$$->setIntVal($1->getIntVal() - $3->getIntVal());	
+															}
+															}
 		| ID												{
 															if(!isIdentifierExists($1->getName())){
 																	errorUndef(yylineno, $1->getName());
