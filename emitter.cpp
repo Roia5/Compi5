@@ -18,54 +18,92 @@ class emitter {
 		}
 	
 	public:
+		//load address to register
+		int la(string rdest, string address) {
+			return CodeBuffer.emit("la " + rdest + ", " + address);
+		}
+		
+		//load immediate to register
+		int li(string rdest, string im) {
+			return CodeBuffer.emit("li " + rdest + ", " + im);
+		}
+		
+		//load word at adress to register
+		int lw(string rdest, string address) {
+			return CodeBuffer.emit("lw " + rdest + ", " + address);
+		}
+		
+		//store word from register to address
+		int sw(string rsrc, string address) {
+			return CodeBuffer.emit("sw " + rsrc + ", " + address);
+		}
+		
+		//
 		int add(string rdest, string rsrc, string src) {
 			return action3op("addu", rdest, rsrc, src);
 		}
 		
+		//
 		int sub(string rdest, string rsrc, string src) {
 			return action3op("subu", rdest, rsrc, src);
 		}
 		
+		//
 		int mul(string rdest, string rsrc, string src) {
 			return action3op("mul", rdest, rsrc, src);
 		}
 		
+		//
 		//int div(string rdest, string rsrc, string src) {
 		//	CodeBuffer.emit("mul " + rdest + ", " + rsrc + ", " + src);
 		//}
 		
-		int move(string rdest, string rsrc) {
+		//
+		int mov(string rdest, string rsrc) {
 			return CodeBuffer.emit("move " + rdest + ", " + rsrc);
 		}
 		
-		int jump(string label) {
-			return CodeBuffer.emit("j " + label);
-		}
-		
+		//
 		int beq(string rsrc, string src, string label) {
 			return condjump("beq", rsrc, src, label);
 		}
 		
+		//
 		int bne(string rsrc, string src, string label) {
 			return condjump("bne", rsrc, src, label);
 		}
 		
+		//
 		int blt(string rsrc, string src, string label) {
 			return condjump("blt", rsrc, src, label);
 		}
 		
+		//
 		int ble(string rsrc, string src, string label) {
 			return condjump("ble", rsrc, src, label);
 		}
 		
+		//
 		int bgt(string rsrc, string src, string label) {
 			return condjump("bgt", rsrc, src, label);
 		}
 		
+		//
 		int bge(string rsrc, string src, string label) {
 			return condjump("bge", rsrc, src, label);
 		}
 		
+		//
+		int jmp(string label) {
+			return CodeBuffer.emit("j " + label);
+		}
+		
+		//
+		//int jal() {
+		//	
+		//}
+		
+		//no operation
 		int nop() {
 			return emit("nop");
 		}
