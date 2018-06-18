@@ -38,22 +38,22 @@ class emitter {
 			return CodeBuffer.emit("sw " + rsrc + ", " + address);
 		}
 		
-		//
+		//add src to rsrc and save to rdest
 		int add(string rdest, string rsrc, string src) {
 			return action3op("addu", rdest, rsrc, src);
 		}
 		
-		//
+		//sub src from rsrc and save to rdest
 		int sub(string rdest, string rsrc, string src) {
 			return action3op("subu", rdest, rsrc, src);
 		}
 		
-		//
+		//multiply rsrc and src and save to rdest
 		int mul(string rdest, string rsrc, string src) {
 			return action3op("mul", rdest, rsrc, src);
 		}
 		
-		//
+		//divide rsrc by src and save to rdest
 		int div(string rdest, string rsrc, string src) {
 			//TODO: check if src!=0
 			return action3op("div", rdest, rsrc, src);
@@ -99,7 +99,7 @@ class emitter {
 			return CodeBuffer.emit("j " + label);
 		}
 		
-		//jump to label and save pre-jump address to ra
+		//jump to label and save pre-jump address to ra register
 		int jal(string label) {
 			return CodeBuffer.emit("jal " + label);
 			
