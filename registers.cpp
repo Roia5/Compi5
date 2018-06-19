@@ -44,7 +44,7 @@ public:
             availRegs.push_back(i);
         }
     }
-    string getAvailReg(){
+    string getAvailReg() {
         if(availRegs.size()==0){
             cout << "no available register" << endl;
             return "";

@@ -195,8 +195,6 @@ vector<string> splitType(string type);
 
 bool doesFunctionExist(string, string);
 
-bool arrayIsInRange(TEntry*, int);
-
 string numberToString(int);
 
 #ifndef YYSTYPE

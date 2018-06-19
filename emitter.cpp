@@ -2,11 +2,11 @@
 #include <stdio.h>
 #include <iostream>
 #include <sstream>
-#include "bp.cpp"
+#include "bp.hpp"
 #include "attributes.hpp"
+#include "registers.cpp"
 
 using namespace std;
-using namespace CodeBuffer;
 
 class emitter {
 	private:
@@ -21,7 +21,9 @@ class emitter {
 		int jump(string jorjal, string label) {
 			return CodeBuffer.emit(jorjal + " " + label);
 		}
-	
+		
+		RegisterHandler RH = RegisterHandler();
+		static int valid_unique_label = 0;
 	public:
 
 		void pushRegister(string reg){
@@ -80,8 +82,18 @@ class emitter {
 		
 		//divide rsrc by src and save to rdest
 		int div(string rdest, string rsrc, string src) {
-			//TODO: check if src!=0
-			//cout << "Error division by zero" << endl;
+			int emitted = bne(src, "0", " ");
+			
+			string error_reg = getAvailReg();
+			la(error_reg, "errorZeroDiv")
+			pushRegister(error_reg);
+			addRegToPool();
+			jal("print");
+			
+			string valid_label = "div_ok_" + numberToString(++valid_unique_label);
+			CodeBuffer.emit(valid_label + ":");
+			CodeBuffer.bpatch(CodeBuffer.makelist(emitted), valid_label);
+			
 			return action3op("div", rdest, rsrc, src);
 		}
 		
@@ -133,5 +145,16 @@ class emitter {
 		//no operation
 		int nop() {
 			return CodeBuffer.emit("nop");
+		}
+		
+		int arrayIsInRange(string arr, string idx) {
+			//string reg_arr = getAvailReg();
+			//string reg_idx = getAvailReg();
+			//loadVariable(reg_arr, int offset);
+			//loadVariable(reg_idx, int offset);
+			//CodeBuffer.emit("sub ");
+			//CodeBuffer.emit("nop");
+			
+			return 0;
 		}
 }
