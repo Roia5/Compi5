@@ -81,7 +81,7 @@ void PrintTopStack() {
 	}
 }
 
-int InsertVar(string Name, string Type) {
+int InsertVar(string Name, string Type, VarType* t) {
 	if (isIdentifierExists(Name)) {
 		errorDef(yylineno, Name);
 		PopAllStacks();
@@ -89,7 +89,16 @@ int InsertVar(string Name, string Type) {
 	}
 	
 	int curr_off = offsets_stack.back();
-	tables_stack.back().push_back(TEntry(Name, Type, curr_off));
+	if(Type=="INT" || Type=="BYTE"){
+		tables_stack.back().push_back(TEntry(Name, Type, curr_off, t->getIntVal()));
+	}
+	else if(Type=="BOOL"){
+		tables_stack.back().push_back(TEntry(Name, Type, curr_off, t->getBoolVal()));
+	}
+	else{
+		tables_stack.back().push_back(TEntry(Name, Type, curr_off));
+	}
+	
 	offsets_stack.pop_back();
 	offsets_stack.push_back(curr_off + 1);
 	return 0;
