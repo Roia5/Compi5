@@ -5,6 +5,7 @@
 	#include <stdio.h>
 	#include <vector>
 	#include "output.hpp"
+	#include "bp.hpp"
 	
     using namespace std;
 	using namespace output;
@@ -529,7 +530,8 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																errorMismatch(yylineno); 
 																PopAllStacks();
 																exit(0);
-															}	
+															}
+															
 															if(($1->getType() == "INT") || ($3->getType() == "INT"))
 																$$->setType("INT");
 															else 
@@ -554,7 +556,8 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																errorMismatch(yylineno);
 																PopAllStacks();
 																exit(0);
-															}	
+															}
+															
 															if(($1->getType() == "INT") || ($3->getType() == "INT"))
 																$$->setType("INT");
 															else 
@@ -699,9 +702,21 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 %%
 
 int main() {
+	CodeBuffer.emitData("errorOutOfBounds: .ascii \"Error index out of bounds\n\"");
+	CodeBuffer.emitData("errorZeroDiv: .ascii \"Error division by zero\n\"");
+	
 	//yydebug = 1;
 	__init_stacks();
 	int status = yyparse();
+	
+	CodeBuffer.emit("print:");
+	CodeBuffer.emit("lw $a0,0($sp)");
+	CodeBuffer.emit("li $v0,4");
+	CodeBuffer.emit("syscall");
+	CodeBuffer.emit("jr $ra");
+	CodeBuffer.emit("end_of_program:");
+	CodeBuffer.emit("nop");
+	
 	__destroy_stacks();
     return status;
 }

@@ -330,12 +330,3 @@ string numberToString(int number) {
 	result = convert.str();
 	return result;
 }
-
-bool arrayIsInRange(TEntry* entry, int idx) {
-	if (entry->kind != Array) //TBD: should throw error or anything like that
-		return false;
-		
-	if (idx >= entry->arrSize || idx < 0)
-		return false;
-	return true;
-}

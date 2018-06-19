@@ -2,12 +2,11 @@
 #include <stdio.h>
 #include <iostream>
 #include <sstream>
-#include "bp.cpp"
+#include "bp.hpp"
 #include "attributes.hpp"
 #include "registers.cpp"
 
 using namespace std;
-using namespace CodeBuffer;
 
 class emitter {
 	private:
@@ -23,9 +22,19 @@ class emitter {
 		int jump(string jorjal, string label) {
 			return CodeBuffer.emit(jorjal + " " + label);
 		}
-	
+		
+		void print_error(string fun, string error_address){
+			string error_reg = getAvailReg();
+			la(error_reg, error_address)
+			pushRegister(error_reg);
+			addRegToPool();
+			jal(fun);
+			jal("end_of_program");
+		}
+		
+		static int valid_unique_label;
 	public:
-		emitter(RegisterHandler& rh) : rh(rh) {}
+		emitter(RegisterHandler& rh) : rh(rh) { valid_unique_label(0) }
 		void onFunctionCall(string name, vector<string> argumentRegs){	//saving all used registers by caller, $fp, $ra, argument registers, then resets pool.
 			vector<string> usedRegVec = rh.getUsedRegisters();
 			for(int i=0;i<usedRegVec.size();i++){
@@ -103,8 +112,14 @@ class emitter {
 		
 		//divide rsrc by src and save to rdest
 		int div(string rdest, string rsrc, string src) {
-			//TODO: check if src!=0
-			//cout << "Error division by zero" << endl;
+			int emitted = bne(src, "0", " ");
+			
+			print_error("print", "errorZeroDiv");
+			
+			string valid_label = "div_ok_" + numberToString(++valid_unique_label);
+			CodeBuffer.emit(valid_label + ":");
+			CodeBuffer.bpatch(CodeBuffer.makelist(emitted), valid_label);
+			
 			return action3op("div", rdest, rsrc, src);
 		}
 		
@@ -160,5 +175,16 @@ class emitter {
 		//no operation
 		int nop() {
 			return CodeBuffer.emit("nop");
+		}
+		
+		int arrayIsInRange(string arr, string idx) {
+			//string reg_arr = getAvailReg();
+			//string reg_idx = getAvailReg();
+			//loadVariable(reg_arr, int offset);
+			//loadVariable(reg_idx, int offset);
+			//CodeBuffer.emit("sub ");
+			//CodeBuffer.emit("nop");
+			
+			return 0;
 		}
 }
