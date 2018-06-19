@@ -23,10 +23,19 @@ class emitter {
 			return CodeBuffer.emit(jorjal + " " + label);
 		}
 		
+		void print_error(string fun, string error_address){
+			string error_reg = getAvailReg();
+			la(error_reg, error_address)
+			pushRegister(error_reg);
+			addRegToPool();
+			jal(fun);
+			jal("end_of_program");
+		}
+		
 		RegisterHandler RH = RegisterHandler();
-		static int valid_unique_label = 0;
+		static int valid_unique_label;
 	public:
-		emitter(RegisterHandler& rh) : rh(rh) {}
+		emitter(RegisterHandler& rh) : rh(rh) { valid_unique_label(0) }
 		void callFunction(vector<string> argumentRegs){	//saving all used registers by caller, $fp, $ra, argument registers, then resets pool.
 			vector<string> usedRegVec = rh.getUsedRegisters();
 			for(int i=0;i<usedRegVec.size();i++){
@@ -101,11 +110,7 @@ class emitter {
 		int div(string rdest, string rsrc, string src) {
 			int emitted = bne(src, "0", " ");
 			
-			string error_reg = getAvailReg();
-			la(error_reg, "errorZeroDiv")
-			pushRegister(error_reg);
-			addRegToPool();
-			jal("print");
+			print_error("print", "errorZeroDiv");
 			
 			string valid_label = "div_ok_" + numberToString(++valid_unique_label);
 			CodeBuffer.emit(valid_label + ":");

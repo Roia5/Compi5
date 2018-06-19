@@ -711,6 +711,9 @@ int main() {
 	CodeBuffer.emit("lw $a0,0($sp)");
 	CodeBuffer.emit("li $v0,4");
 	CodeBuffer.emit("syscall");
+	CodeBuffer.emit("jr $ra");
+	CodeBuffer.emit("end_of_program:");
+	CodeBuffer.emit("nop");
 	
 	__destroy_stacks();
     return status;
