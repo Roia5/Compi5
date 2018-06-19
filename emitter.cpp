@@ -32,7 +32,6 @@ class emitter {
 			jal("end_of_program");
 		}
 		
-		RegisterHandler RH = RegisterHandler();
 		static int valid_unique_label;
 	public:
 		emitter(RegisterHandler& rh) : rh(rh) { valid_unique_label(0) }
