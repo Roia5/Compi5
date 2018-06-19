@@ -168,7 +168,10 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																}
 																dynamic_cast<TEntry*>($2)->setKind(Var);
 																InsertVar($2->getName(),$1->getType(),$2);
-
+																string reg = register_handler.getAvailReg();
+																e.li(reg,"0");
+																e.pushReg(reg);
+																
 																}
 		| Type ID ASSIGN Exp SC									{
 																if(isIdentifierExists($2->getName())){

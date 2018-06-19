@@ -34,7 +34,6 @@ class emitter {
 		}
 		void loadVariable(string rdest, int offset){
 			int real_offset = -4*offset;
-
 			lw(rdest,numberToString(real_offset) + "($fp)");
 		}
 		//load address to register
