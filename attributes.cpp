@@ -89,10 +89,10 @@ int InsertVar(string Name, string Type, VarType* t) {
 	}
 	
 	int curr_off = offsets_stack.back();
-	if(Type=="INT" || Type=="BYTE"){
+	if(Type == SymbolTableAliases[typeInt] || Type == SymbolTableAliases[typeByte]){
 		tables_stack.back().push_back(TEntry(Name, Type, curr_off, t->getIntVal()));
 	}
-	else if(Type=="BOOL"){
+	else if(Type==SymbolTableAliases[typeBool]){
 		tables_stack.back().push_back(TEntry(Name, Type, curr_off, t->getBoolVal()));
 	}
 	else{
@@ -127,7 +127,7 @@ int InsertArray(string Name, string Type, int Size) {
 void parser_helper() {
 	for (int i = tables_stack.size()-1; i >= 0; i--)
 		for (int j = tables_stack[i].size()-1; j >= 0; j--)
-			cout << "ID:" << tables_stack[i][j].getName() << ", Type: " << tables_stack[i][j].getType() << "\n";
+			cout << "ID:" << tables_stack[i][j].getName() << ", Type: " << tables_stack[i][j].getType() << endl;
 }
 int InsertFunction(string Name, string type, vector<EntryKind> vecKinds, vector<string> vecNames){
 	size_t position = type.find("_");
@@ -240,9 +240,7 @@ string getCurrentFunctionType() {
 }
 
 bool parameterFits(TEntry entry, string callType){
-	//cout << "hasdasd" << endl;
-	if(entry.getKind() == Array){
-		//cout << "2222asd " << (entry.getType() + "[" + numberToString(entry.getArrSize()) + "]") << endl;
+	if (entry.getKind() == Array){
 		return ((entry.getType() + "[" + numberToString(entry.getArrSize()) + "]") == callType);
 	}
 	string parameterType = entry.getType();
