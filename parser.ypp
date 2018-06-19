@@ -24,7 +24,7 @@
 	bool foundMain = false;
 
 	RegisterHandler register_handler;
-	emitter e;
+	emitter e(register_handler);
 	#ifndef YYSTYPE
 	#define YYSTYPE VarType*
 	#endif
@@ -194,6 +194,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																$2->setType($1->getType());
 																dynamic_cast<TEntry*>($2)->setKind(Var);
 																InsertVar($2->getName(),$1->getType(),$2);
+																e.pushRegister($4->getRegister());
 																}
 		| Type ID LBRACK NUM RBRACK SC							{
 																if(isIdentifierExists($2->getName())){
@@ -395,7 +396,10 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 ElsePart :		/*epsilon*/ %prec IF
 		| ELSE {StartScope();} Statement {ExitScope();} %prec ELSE
 ;
-Call :		ID LPAREN ExpList RPAREN						{TEntry* t;
+Call :		ID LPAREN ExpList
+			{ 
+				e.onFunctionCall($3->getRegisterList());
+			} RPAREN						{TEntry* t;
 															string old3 = $3->getType();
 															if($1->getName()=="print"){
 																$$->setType("VOID");
@@ -410,7 +414,6 @@ Call :		ID LPAREN ExpList RPAREN						{TEntry* t;
 															}
 															else if($1->getName()=="printi"){
 																$$->setType("VOID");
-																
 																if($3->getType()!="INT" && $3->getType()!="BYTE"){
 																	string temps = $1->getName();
 																	vector<string> tempv;
@@ -419,23 +422,17 @@ Call :		ID LPAREN ExpList RPAREN						{TEntry* t;
 																	PopAllStacks();
 																	exit(0);
 																}
-																
 															}
 															else {
-																
 																t = findByID($1->getName());
-																
 																if(t->getKind()!=Func){
-																	
 																	errorUndefFunc(yylineno, $1->getName());
 																	PopAllStacks();
 																	exit(0);
 																}	
-																
 																$$->setType(t->getType());	//find retValue type
 															}
-																
-																t = findByID($1->getName());
+															t = findByID($1->getName());
 															if(!doesFunctionExist($1->getName(), $1->getType() + "_" +old3)){
 																vector<TEntry> vecEntry = t->getFuncArgs();
 																vector<string> vecTypes;
@@ -452,7 +449,6 @@ Call :		ID LPAREN ExpList RPAREN						{TEntry* t;
 																exit(0);
 															}	
 															
-															
 															}
 		| ID LPAREN RPAREN									{
 															
@@ -466,25 +462,35 @@ Call :		ID LPAREN ExpList RPAREN						{TEntry* t;
 															
 															$$->setType(t->getType());
 															if(!doesFunctionExist($1->getName(), t->getType() + "_")){
-																	vector<TEntry> vecEntry = t->getFuncArgs();
-																	vector<string> vecTypes;
-																	for(int i=0;i<vecEntry.size();i++){
-																		if(vecEntry[i].getKind() == Array){
-																			vecTypes.push_back(vecEntry[i].getType() + "[" + numberToString(vecEntry[i].getArrSize()) + "]");
-																		}
-																		else {
-																			vecTypes.push_back(vecEntry[i].getType());
-																		}
+																vector<TEntry> vecEntry = t->getFuncArgs();
+																vector<string> vecTypes;
+																for(int i=0;i<vecEntry.size();i++){
+																	if(vecEntry[i].getKind() == Array){
+																		vecTypes.push_back(vecEntry[i].getType() + "[" + numberToString(vecEntry[i].getArrSize()) + "]");
 																	}
-																	errorPrototypeMismatch(yylineno, $1->getName(), vecTypes); 
-																	PopAllStacks();
-																	exit(0);
-																}	
+																	else {
+																		vecTypes.push_back(vecEntry[i].getType());
+																	}
+																}
+																errorPrototypeMismatch(yylineno, $1->getName(), vecTypes); 
+																PopAllStacks();
+																exit(0);
+															}
+
 															}
 ;
 
-ExpList :		Exp											{$$->setType($1->getType());}
-		| Exp COMMA ExpList									{$$->setType($1->getType() + "," + $3->getType());}
+ExpList :		Exp											{
+															$$->setType($1->getType());
+															$$->addRegisterToList($1->getRegister());}
+		| Exp COMMA ExpList									{
+															$$->setType($1->getType() + "," + $3->getType());
+															vector<string> list = $3->getRegisterList();
+															$$->addRegisterToList($1->getRegister());
+															for(int i=0;i<list.size();i++){
+																$$->addRegisterToList(list[i]);
+															}
+															}
 ;
 
 Type :		INT
@@ -536,7 +542,10 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															else {
 																div(reg1,reg1,reg2);
 															}	
-																
+															$$->setRegister(reg1);
+															if($$->getType()=="BYTE"){
+																e.zeroTopBits(reg1);
+															}
 															}
 
 		| Exp BINOP_ADD Exp									{
@@ -558,6 +567,10 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															}
 															else {
 																e.sub(reg1,reg1,reg2);
+															}
+															$$->setRegister(reg1);
+															if($$->getType()=="BYTE"){
+																e.zeroTopBits(reg1);
 															}
 															}
 		| ID												{
@@ -674,12 +687,13 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															$$->setType("BOOL");
 															int val1 = $1->getIntVal();
 															int val2 = $3->getIntVal();
-															if($2->getOp()=="=="){
+															/*if($2->getOp()=="=="){
 																$$->setBoolVal(val1==val3);
 															}
 															else {
 																$$->setBoolVal(val1!=val3);
-															}
+															}*/
+
 															}
 ;
 

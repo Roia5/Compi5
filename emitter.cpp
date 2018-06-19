@@ -10,6 +10,7 @@ using namespace std;
 
 class emitter {
 	private:
+		RegisterHandler rh;
 		int action3op(string act, string rdest, string rsrc, string src) {
 			return CodeBuffer.emit(act + " " + rdest + ", " + rsrc + ", " + src);
 		}
@@ -25,7 +26,19 @@ class emitter {
 		RegisterHandler RH = RegisterHandler();
 		static int valid_unique_label = 0;
 	public:
-
+		emitter(RegisterHandler& rh) : rh(rh) {}
+		void callFunction(vector<string> argumentRegs){	//saving all used registers by caller, $fp, $ra, argument registers, then resets pool.
+			vector<string> usedRegVec = rh.getUsedRegisters();
+			for(int i=0;i<usedRegVec.size();i++){
+				pushRegister(usedRegVec[i]);
+			}
+			pushRegister("$fp");
+			pushRegister("$ra");
+			for(int i=0;i<argumentRegs.size();i++){
+				pushRegister(argumentRegs[i]);
+			}
+			rh.resetPool();
+		}
 		void pushRegister(string reg){
 			sub("$sp","$sp","4");
 			sw(reg,"($sp)");
@@ -44,6 +57,10 @@ class emitter {
 		void loadVariable(string rdest, int offset){
 			int real_offset = -4*offset;
 			lw(rdest,numberToString(real_offset) + "($fp)");
+		}
+		void zeroTopBits(string reg){
+			CodeBuffer.emit("sll " + reg + ", " + reg + ", 24");	//shift left 24 bits
+			CodeBuffer.emit("srl " + reg + ", " + reg + ", 24");	//shift right 24 bits
 		}
 		//load address to register
 		int la(string rdest, string address) {

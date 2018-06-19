@@ -38,6 +38,7 @@ static string regIndexToName(int index){
 class RegisterHandler {
 private:
     std::vector<int> availRegs;
+    std::vector<int> usedRegs;
 public:
     RegisterHandler() {
         for(int i=NUM_REGS-1;i>=0;i--){
@@ -51,11 +52,32 @@ public:
         }
         string regToReturn = regIndexToName(availRegs.back());
         availRegs.pop_back();
+        usedRegs.push_back(regToReturn);
         return regToReturn;
     }
-    void addRegToPool(){
+    void returnRegisterToPool(int regNum){
         if(availRegs.size()!=NUM_REGS){
-            availRegs.push_back(availRegs.back()-1);
+            for(int i=0;i<usedRegs.size();i++){
+                if(usedRegs[i]==regNum){
+                    usedRegs.erase(usedRegs.begin()+i);
+                    availRegs.push_back(regNum);
+                    break;
+                }
+            }
+        }
+    }
+    vector<string> getUsedRegisters(){
+        vector<string> ret_vec;
+        for(int i=0;i<usedRegs.size();i++){
+            ret_vec.push_back(regIndexToName(usedRegs[i]));
+        }
+        return ret_vec;
+    }
+    void resetPool(){
+        usedRegs.clear();
+        availRegs.clear();
+        for(int i=NUM_REGS-1;i>=0;i--){
+            availRegs.push_back(i);
         }
     }
 

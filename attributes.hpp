@@ -34,6 +34,7 @@ class VarType {
 		bool boolVal;
 		string reg;
 		string op;
+		vector<string> registerList;
 	public:
 		VarType() {}
 		VarType(string varType, string name) : vType(varType), name(name), isNamed(true) {}
@@ -45,6 +46,12 @@ class VarType {
 	}
 	bool getBoolVal(){
 		return this->boolVal;
+	}
+	void addRegisterToList(string reg){
+		registerList.push_back(reg);
+	}
+	vector<string> getRegisterList(){
+		return this->registerList;
 	}
 	void setRegister(string reg){
 		this->reg = reg;
