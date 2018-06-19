@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include "bp.cpp"
+#include "attributes.hpp"
 
 using namespace std;
 using namespace CodeBuffer;
@@ -22,6 +23,20 @@ class emitter {
 		}
 	
 	public:
+
+		void pushRegister(string reg){
+			sub("$sp","$sp","4");
+			sw(reg,"($sp)");
+		}
+		void popRegister(string reg){
+			lw(reg, "($sp)");
+			add("$sp","$sp","4");
+		}
+		void loadVariable(string rdest, int offset){
+			int real_offset = -4*offset;
+
+			lw(rdest,numberToString(real_offset) + "($fp)");
+		}
 		//load address to register
 		int la(string rdest, string address) {
 			return CodeBuffer.emit("la " + rdest + ", " + address);
