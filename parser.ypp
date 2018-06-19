@@ -161,14 +161,21 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																	exit(0);
 																}
 																$2->setType($1->getType()); 
-																if($1->getType() == "INT" || $1->getType() == "BYTE")
+																/*if($1->getType() == "INT" || $1->getType() == "BYTE")
 																	$2->setIntVal(0);
 																else if($1->getType() == "BOOL"){
 																	$2->setBoolVal(false);
-																}
+																}*/
 																dynamic_cast<TEntry*>($2)->setKind(Var);
 																InsertVar($2->getName(),$1->getType(),$2);
-
+																string reg = register_handler.getAvailReg();
+																if($1->getType() == "INT" || $1->getType() == "BYTE"){
+																	e.li(reg,"0");
+																	e.pushReg(reg);
+																}
+																else {
+																	//todo handle false var initialize
+																}
 																}
 		| Type ID ASSIGN Exp SC									{
 																if(isIdentifierExists($2->getName())){
@@ -553,13 +560,16 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															}
 															else {
 																$$->setType(t->getType());
+																$$->setRegister(register_handler.getAvailReg());
+																e.loadVar($$->getRegister(), t->getOffset());
 															}
-															if(t->getType()=="INT" || t->getType()=="BYTE"){
+															/*if(t->getType()=="INT" || t->getType()=="BYTE"){
 																$$->setIntVal(t->getIntVal());
 															}
 															else if(t->getType()=="BOOL"){
 																$$->setBoolVal(t->getBoolVal());
-															}
+															}*/
+
 															
 															}
 		| Call												{$$->setType($1->getType());}

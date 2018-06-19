@@ -32,7 +32,7 @@ class VarType {
 		bool isNamed;
 		int intVal;
 		bool boolVal;
-		string register;
+		string reg;
 		string op;
 	public:
 		VarType() {}
@@ -47,10 +47,10 @@ class VarType {
 		return this->boolVal;
 	}
 	void setRegister(string reg){
-		this->register = reg;
+		this->reg = reg;
 	}
 	string getRegister(){
-		return this->register;
+		return this->reg;
 	}
 	void addArgName(string name){
 		argNames.push_back(name);
