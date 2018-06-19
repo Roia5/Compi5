@@ -26,7 +26,7 @@ class emitter {
 	
 	public:
 		emitter(RegisterHandler& rh) : rh(rh) {}
-		void callFunction(vector<string> argumentRegs){	//saving all used registers by caller, $fp, $ra, argument registers, then resets pool.
+		void onFunctionCall(string name, vector<string> argumentRegs){	//saving all used registers by caller, $fp, $ra, argument registers, then resets pool.
 			vector<string> usedRegVec = rh.getUsedRegisters();
 			for(int i=0;i<usedRegVec.size();i++){
 				pushRegister(usedRegVec[i]);
@@ -37,6 +37,11 @@ class emitter {
 				pushRegister(argumentRegs[i]);
 			}
 			rh.resetPool();
+			jal(name);
+		}
+		void onFunctionReturn(){
+			
+			jr();
 		}
 		void pushRegister(string reg){
 			sub("$sp","$sp","4");
@@ -146,6 +151,10 @@ class emitter {
 		//jump to label and save pre-jump address to ra register
 		int jal(string label) {
 			return jump("jal", label);
+		}
+
+		int jr(){
+			return CodeBuffer.emit("jr $ra");
 		}
 		
 		//no operation

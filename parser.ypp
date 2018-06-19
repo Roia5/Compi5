@@ -397,8 +397,8 @@ ElsePart :		/*epsilon*/ %prec IF
 ;
 Call :		ID LPAREN ExpList
 			{ 
-				e.onFunctionCall($3->getRegisterList());
-			} RPAREN						{TEntry* t;
+				e.onFunctionCall($1->getName(),$3->getRegisterList());
+			} RPAREN						{onFunctionReturn(); TEntry* t;
 															string old3 = $3->getType();
 															if($1->getName()=="print"){
 																$$->setType("VOID");
@@ -449,7 +449,9 @@ Call :		ID LPAREN ExpList
 															}	
 															
 															}
-		| ID LPAREN RPAREN									{
+		| ID LPAREN { 
+				e.onFunctionCall($1->getName());
+			} RPAREN									{
 															
 															TEntry* t = findByID($1->getName());
 															if(!t || t->getKind()!=Func){

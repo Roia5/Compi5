@@ -33,7 +33,28 @@ static string regIndexToName(int index){
     cout << "regIndexToName error" << endl;
     return "";
 }
-
+static string regNameToIndex(string name){
+    if (name == "$t0") return 0;
+    if (name == "$t1") return 1;
+    if (name == "$t2") return 2;
+    if (name == "$t3") return 3;
+    if (name == "$t4") return 4;
+    if (name == "$t5") return 5;
+    if (name == "$t6") return 6;
+    if (name == "$t7") return 7;
+    if (name == "$s0") return 8;
+    if (name == "$s1") return 9;
+    if (name == "$s2") return 10;
+    if (name == "$s3") return 11;
+    if (name == "$s4") return 12;
+    if (name == "$s5") return 13;
+    if (name == "$s6") return 14;
+    if (name == "$s7") return 15;
+    if (name == "$t8") return 16;
+    if (name == "$t9") return 17;
+    cout << "regNameToIndex error" << endl;
+    return -1;
+}
 
 class RegisterHandler {
 private:
@@ -55,7 +76,8 @@ public:
         usedRegs.push_back(regToReturn);
         return regToReturn;
     }
-    void returnRegisterToPool(int regNum){
+    void returnRegisterToPool(string reg){
+        int regNum = regNameToIndex(reg);
         if(availRegs.size()!=NUM_REGS){
             for(int i=0;i<usedRegs.size();i++){
                 if(usedRegs[i]==regNum){
