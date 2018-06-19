@@ -211,6 +211,15 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																$2->setType($1->getType() + "[" + valString + "]");
 																dynamic_cast<TEntry*>($2)->setKind(Array);
 																InsertArray($2->getName(),$1->getType(), number);
+
+																string reg = register_handler.getAvailReg();
+																if($1->getType() == "INT" || $1->getType() == "BYTE"){
+																	e.li(reg,"0");
+																	e.initArray(reg,$4->getIntVal());
+																}
+																else {
+																	//todo handle false array initialize
+																}
 																}
 		| Type ID LBRACK NUM B RBRACK SC						{
 																if(isIdentifierExists($2->getName())){
