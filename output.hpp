@@ -30,6 +30,9 @@ namespace output{
     void errorMainMissing();
     void errorByteTooLarge(int lineno, const string& value);
     void errorInvalidArraySize(int lineno, const string& id);
+	void errorInvalidArraySize(int lineno, const string& id);
+	void errorOutOfBounds();
+	void errorZeroDiv();
 }
 
 #endif

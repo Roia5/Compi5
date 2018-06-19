@@ -81,3 +81,11 @@ void output::errorByteTooLarge(int lineno, const string& value) {
 void output::errorInvalidArraySize(int lineno, const string& id) {
     cout << "line " << lineno << ": array " << id << " declared with invalid size" << endl;
 }
+
+void output::errorOutOfBounds() {
+	cout << "Error index out of bounds" << endl;
+}
+
+void output::errorZeroDiv() {
+	cout << "Error division by zero" << endl;
+}
