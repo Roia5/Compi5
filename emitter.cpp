@@ -56,6 +56,7 @@ class emitter {
 		//divide rsrc by src and save to rdest
 		int div(string rdest, string rsrc, string src) {
 			//TODO: check if src!=0
+			//cout << "Error division by zero" << endl;
 			return action3op("div", rdest, rsrc, src);
 		}
 		
