@@ -26,7 +26,7 @@ class emitter {
 	
 	public:
 		emitter(RegisterHandler& rh) : rh(rh) {}
-		void callFunction(vector<string> argumentRegs){	//saving all used registers by caller, $fp, $ra, argument registers, 
+		void callFunction(vector<string> argumentRegs){	//saving all used registers by caller, $fp, $ra, argument registers, then resets pool.
 			vector<string> usedRegVec = rh.getUsedRegisters();
 			for(int i=0;i<usedRegVec.size();i++){
 				pushRegister(usedRegVec[i]);
@@ -36,6 +36,7 @@ class emitter {
 			for(int i=0;i<argumentRegs.size();i++){
 				pushRegister(argumentRegs[i]);
 			}
+			rh.resetPool();
 		}
 		void pushRegister(string reg){
 			sub("$sp","$sp","4");

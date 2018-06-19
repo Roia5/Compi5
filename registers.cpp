@@ -73,6 +73,13 @@ public:
         }
         return ret_vec;
     }
+    void resetPool(){
+        usedRegs.clear();
+        availRegs.clear();
+        for(int i=NUM_REGS-1;i>=0;i--){
+            availRegs.push_back(i);
+        }
+    }
 
 };
 
