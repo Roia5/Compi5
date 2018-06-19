@@ -16,6 +16,10 @@ class emitter {
 		int condjump(string cond, string rsrc, string src, string label) {
 			return CodeBuffer.emit(cond + " " + rsrc + ", " + src + ", " + label);
 		}
+		
+		int jump(string jorjal, string label) {
+			return CodeBuffer.emit(jorjal + " " + label);
+		}
 	
 	public:
 		//load address to register
@@ -97,17 +101,16 @@ class emitter {
 		
 		//jump to label
 		int jmp(string label) {
-			return CodeBuffer.emit("j " + label);
+			return jump("j", label);
 		}
 		
 		//jump to label and save pre-jump address to ra register
 		int jal(string label) {
-			return CodeBuffer.emit("jal " + label);
-			
+			return jump("jal", label);
 		}
 		
 		//no operation
 		int nop() {
-			return emit("nop");
+			return CodeBuffer.emit("nop");
 		}
 }
