@@ -4,12 +4,14 @@
 #include <sstream>
 #include "bp.cpp"
 #include "attributes.hpp"
+#include "registers.cpp"
 
 using namespace std;
 using namespace CodeBuffer;
 
 class emitter {
 	private:
+		RegisterHandler rh;
 		int action3op(string act, string rdest, string rsrc, string src) {
 			return CodeBuffer.emit(act + " " + rdest + ", " + rsrc + ", " + src);
 		}
@@ -23,7 +25,18 @@ class emitter {
 		}
 	
 	public:
-
+		emitter(RegisterHandler& rh) : rh(rh) {}
+		void callFunction(vector<string> argumentRegs){	//saving all used registers by caller, $fp, $ra, argument registers, 
+			vector<string> usedRegVec = rh.getUsedRegisters();
+			for(int i=0;i<usedRegVec.size();i++){
+				pushRegister(usedRegVec[i]);
+			}
+			pushRegister("$fp");
+			pushRegister("$ra");
+			for(int i=0;i<argumentRegs.size();i++){
+				pushRegister(argumentRegs[i]);
+			}
+		}
 		void pushRegister(string reg){
 			sub("$sp","$sp","4");
 			sw(reg,"($sp)");

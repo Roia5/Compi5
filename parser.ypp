@@ -23,7 +23,7 @@
 	bool foundMain = false;
 
 	RegisterHandler register_handler;
-	emitter e;
+	emitter e(register_handler);
 	#ifndef YYSTYPE
 	#define YYSTYPE VarType*
 	#endif
@@ -466,20 +466,21 @@ Call :		ID LPAREN ExpList RPAREN						{TEntry* t;
 															
 															$$->setType(t->getType());
 															if(!doesFunctionExist($1->getName(), t->getType() + "_")){
-																	vector<TEntry> vecEntry = t->getFuncArgs();
-																	vector<string> vecTypes;
-																	for(int i=0;i<vecEntry.size();i++){
-																		if(vecEntry[i].getKind() == Array){
-																			vecTypes.push_back(vecEntry[i].getType() + "[" + numberToString(vecEntry[i].getArrSize()) + "]");
-																		}
-																		else {
-																			vecTypes.push_back(vecEntry[i].getType());
-																		}
+																vector<TEntry> vecEntry = t->getFuncArgs();
+																vector<string> vecTypes;
+																for(int i=0;i<vecEntry.size();i++){
+																	if(vecEntry[i].getKind() == Array){
+																		vecTypes.push_back(vecEntry[i].getType() + "[" + numberToString(vecEntry[i].getArrSize()) + "]");
 																	}
-																	errorPrototypeMismatch(yylineno, $1->getName(), vecTypes); 
-																	PopAllStacks();
-																	exit(0);
-																}	
+																	else {
+																		vecTypes.push_back(vecEntry[i].getType());
+																	}
+																}
+																errorPrototypeMismatch(yylineno, $1->getName(), vecTypes); 
+																PopAllStacks();
+																exit(0);
+															}
+
 															}
 ;
 
