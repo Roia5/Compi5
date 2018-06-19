@@ -193,6 +193,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																$2->setType($1->getType());
 																dynamic_cast<TEntry*>($2)->setKind(Var);
 																InsertVar($2->getName(),$1->getType(),$2);
+																e.pushRegister($4->getRegister());
 																}
 		| Type ID LBRACK NUM RBRACK SC							{
 																if(isIdentifierExists($2->getName())){
@@ -533,7 +534,10 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															else {
 																div(reg1,reg1,reg2);
 															}	
-																
+															$$->setRegister(reg1);
+															if($$->getType()=="BYTE"){
+																e.zeroTopBits(reg1);
+															}
 															}
 
 		| Exp BINOP_ADD Exp									{
@@ -554,6 +558,10 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															}
 															else {
 																e.sub(reg1,reg1,reg2);
+															}
+															$$->setRegister(reg1);
+															if($$->getType()=="BYTE"){
+																e.zeroTopBits(reg1);
 															}
 															}
 		| ID												{
@@ -670,12 +678,13 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															$$->setType("BOOL");
 															int val1 = $1->getIntVal();
 															int val2 = $3->getIntVal();
-															if($2->getOp()=="=="){
+															/*if($2->getOp()=="=="){
 																$$->setBoolVal(val1==val3);
 															}
 															else {
 																$$->setBoolVal(val1!=val3);
-															}
+															}*/
+
 															}
 ;
 
