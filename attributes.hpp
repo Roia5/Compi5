@@ -25,7 +25,7 @@ enum SymbolTableTypes { typeInt, typeByte, typeBool, typeVoid, typeString, TYPES
 
 class VarType {
 	protected:
-		string vType; //TBD: SymbolTableTypes
+		string vType;
 		string name;
 		vector<EntryKind> entryKinds;
 		vector<string> argNames;
@@ -187,12 +187,15 @@ TEntry* findByID(string);
 
 string getCurrentFunctionType();
 
-bool parameterFits(TEntry entry, string);
+bool parameterFits(TEntry, string);
 
 bool allParametersFit(vector<TEntry>, vector<string>);
 
 vector<string> splitType(string type);
+
 bool doesFunctionExist(string, string);
+
+bool arrayIsInRange(TEntry*, int);
 
 string numberToString(int);
 

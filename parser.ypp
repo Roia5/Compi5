@@ -119,7 +119,7 @@ FormalDecl :		Type ID										{$$->setType($1->getType());
 																dynamic_cast<TEntry*>($2)->setKind(Var);}
 
 		| Type ID LBRACK NUM RBRACK								{int number = $4->getIntVal();
-																if(number <= 0 || number >= 256){
+																if (number <= 0 || number >= 256){
 																	errorInvalidArraySize(yylineno,$2->getName()); 
 																	PopAllStacks();
 																	exit(0);
