@@ -170,7 +170,7 @@ int InsertVar(string Name, string Type, VarType* t);
 
 vector<string> getArgsTypes(TEntry);
 
-void PrintTopStack();
+//void PrintTopStack();
 
 int InsertArray(string Name, string Type, int Size);
 
