@@ -203,18 +203,8 @@ class emitter {
 			emit(".end " + name);
 		}
 
-		int arrayIsInRange(string arr_size, string idx) {
-			string error_reg = rh.getAvailReg();
-			li(error_reg, idx);
-			int emitted = bge(error_reg, arr_size, "labelOutOfRange");
-			rh.returnRegisterToPool(error_reg);
-			
-			//print_error("print", "errorOutOfBounds");	
-			
-			//string valid_label = "bounds_ok_" + numberToString(++valid_unique_label);
-			//CodeBuffer::instance().emit(valid_label + ":");
-			//CodeBuffer::instance().bpatch(CodeBuffer::instance().makelist(emitted), valid_label);
-			
-			return 0;
+		int arrayIsInRange(string arr_size, string idx_reg) {
+			int emitted = bge(idx_reg, arr_size, "labelOutOfRange");
+			return blt(idx_reg, "0", "labelOutOfRange");
 		}
 };

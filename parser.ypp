@@ -337,13 +337,13 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																	e.arrayIsInRange(numberToString(t->getArrSize()), $3->getRegister());
 																	
 																	//if ($6->getKind() != Array) {
-																		string resreg = $1->getRegister();
-																		e.la(resreg, $1->getName());
-																		e.add(resreg, resreg, $3->getRegister());
-																		e.add(resreg, resreg, $3->getRegister());
-																		e.add(resreg, resreg, $3->getRegister());
-																		e.add(resreg, resreg, $3->getRegister());
-																		e.mov(resreg, $6->getRegister());
+																		//string resreg = $1->getRegister();
+																		//e.la(resreg, $1->getName());
+																		//e.add(resreg, resreg, $3->getRegister());
+																		//e.add(resreg, resreg, $3->getRegister());
+																		//e.add(resreg, resreg, $3->getRegister());
+																		//e.add(resreg, resreg, $3->getRegister());
+																		//e.mov(resreg, $6->getRegister());
 																	//} else {
 																		//int j(0);
 																		//for (int i(0); i < $1->getArrSize(); i++) {
@@ -551,14 +551,14 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															
 															e.arrayIsInRange(numberToString(t->getArrSize()), $3->getRegister());
 															
-															string resreg = register_handler.getAvailReg();
-															e.la(resreg, $1->getName());
-															e.add(resreg, resreg, $3->getRegister());
-															e.add(resreg, resreg, $3->getRegister());
-															e.add(resreg, resreg, $3->getRegister());
-															e.add(resreg, resreg, $3->getRegister());
-															e.lw($$->getRegister(), resreg);
-															register_handler.returnRegisterToPool(resreg);
+															//string resreg = register_handler.getAvailReg();
+															//e.la(resreg, $1->getName());
+															//e.add(resreg, resreg, $3->getRegister());
+															//e.add(resreg, resreg, $3->getRegister());
+															//e.add(resreg, resreg, $3->getRegister());
+															//e.add(resreg, resreg, $3->getRegister());
+															//e.lw($$->getRegister(), resreg);
+															//register_handler.returnRegisterToPool(resreg);
 															
 															$$->setName($1->getName() + "[]");	
 															$$->setType(t->getType());
@@ -744,23 +744,18 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 %%
 
 int main() {
-	CodeBuffer::instance().emitData("errorOutOfBounds: .ascii \"Error index out of bounds\n\"");
-	CodeBuffer::instance().emitData("errorZeroDiv: .ascii \"Error division by zero\n\"");
+	CodeBuffer::instance().emitData("errorOutOfBounds: .asciiz \"Error index out of bounds\n\"");
+	CodeBuffer::instance().emitData("errorZeroDiv: .asciiz \"Error division by zero\n\"");
 	
-	//yydebug = 1;
-	__init_stacks();
 	/// print imp.
 	e.funcStart("print");
 	emit("lw $a0,0($sp)");
 	emit("li $v0,4");
 	emit("syscall");
-	
 	e.funcEnd("print");
-
-	int status = yyparse();
 	
 	/// div by zero error fun
-	emit("labelZeroDiv:");
+	e.funcStart("labelZeroDiv");
 	string error_reg = register_handler.getAvailReg();
 	e.la(error_reg, "errorZeroDiv");
 	e.pushRegister(error_reg);
@@ -768,9 +763,10 @@ int main() {
 	e.jal("print");
 	emit("li $v0,10"); //terminate program
 	emit("syscall");
+	e.funcEnd("labelZeroDiv");
 
 	/// index out of array range error fun
-	emit("labelOutOfRange:");
+	e.funcStart("labelOutOfRange");
 	error_reg = register_handler.getAvailReg();
 	e.la(error_reg, "errorOutOfBounds");
 	e.pushRegister(error_reg);
@@ -778,7 +774,12 @@ int main() {
 	e.jal("print");
 	emit("li $v0,10"); //terminate program
 	emit("syscall");
-	
+	e.funcEnd("labelOutOfRange");
+	//yydebug = 1;
+	__init_stacks();
+
+	int status = yyparse();
+		
 	__destroy_stacks();
 	CodeBuffer::instance().printDataBuffer();
 	cout << endl;
