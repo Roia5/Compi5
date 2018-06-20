@@ -747,13 +747,22 @@ int main() {
 	CodeBuffer::instance().emitData("errorOutOfBounds: .asciiz \"Error index out of bounds\n\"");
 	CodeBuffer::instance().emitData("errorZeroDiv: .asciiz \"Error division by zero\n\"");
 	
+	int status = yyparse();
+	
 	/// print imp.
 	e.funcStart("print");
 	emit("lw $a0,0($sp)");
 	emit("li $v0,4");
 	emit("syscall");
 	e.funcEnd("print");
-	
+
+	/// printi imp.
+	e.funcStart("printi");
+	emit("lw $a0,0($sp)");
+	emit("li $v0,1");
+	emit("syscall");
+	e.funcEnd("printi");
+
 	/// div by zero error fun
 	e.funcStart("labelZeroDiv");
 	string error_reg = register_handler.getAvailReg();
@@ -777,8 +786,6 @@ int main() {
 	e.funcEnd("labelOutOfRange");
 	//yydebug = 1;
 	__init_stacks();
-
-	int status = yyparse();
 		
 	__destroy_stacks();
 	CodeBuffer::instance().printDataBuffer();
