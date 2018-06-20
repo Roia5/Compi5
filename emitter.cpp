@@ -23,7 +23,7 @@ class emitter {
 			return emit(jorjal + " " + label);
 		}
 		
-		void print_error(string fun, string error_address){
+		/*void print_error(string fun, string error_address){
 			string error_reg = rh.getAvailReg();
 			la(error_reg, error_address);
 			pushRegister(error_reg);
@@ -36,7 +36,7 @@ class emitter {
 			TEntry* evar = findByID(var);
 			//if (!evar) problem...
 			return evar->getOffset();
-		}
+		}*/
 		
 		//static int valid_unique_label;
 	public:
