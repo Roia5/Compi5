@@ -1,5 +1,5 @@
 #include "attributes.hpp"
-
+#include "bp.hpp"
 vector <vector<TEntry> > tables_stack;
 vector <int> offsets_stack;
 
@@ -322,6 +322,6 @@ string numberToString(int number) {
 	return result;
 }
 
-void emit(string msg){
+int emit(string msg){
 	CodeBuffer::instance().emit(msg);
 }

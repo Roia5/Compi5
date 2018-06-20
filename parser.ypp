@@ -332,7 +332,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																		exit(0);
 																	}
 																	
-																	e.arrayIsInRange(numberToString(t->getArrSize()), $3.reg);
+																	e.arrayIsInRange(numberToString(t->getArrSize()), $3->getRegister());
 																}
 		| Call SC
 		| RETURN SC {
@@ -528,7 +528,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																exit(0);
 															}
 															
-															e.arrayIsInRange(numberToString(t->getArrSize()), $3.reg);
+															e.arrayIsInRange(numberToString(t->getArrSize()), $3->getRegister());
 															
 															$$->setName($1->getName() + "[]");	
 															$$->setType(t->getType());
@@ -730,14 +730,14 @@ int main() {
 	emit("labelZeroDiv:");
 	string error_reg = register_handler.getAvailReg();
 	e.la(error_reg, "errorZeroDiv");
-	pushRegister(error_reg);
+	e.pushRegister(error_reg);
 	register_handler.returnRegisterToPool(error_reg);
 	e.jal("print");
 	e.jmp("end_of_program");
 	
 	/// index out of array range error fun
 	emit("labelOutOfRange:");
-	string error_reg = register_handler.getAvailReg();
+	error_reg = register_handler.getAvailReg();
 	e.la(error_reg, "errorOutOfBounds");
 	e.pushRegister(error_reg);
 	register_handler.returnRegisterToPool(error_reg);
