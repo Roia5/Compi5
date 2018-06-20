@@ -33,7 +33,7 @@ static string regIndexToName(int index){
     cout << "regIndexToName error" << endl;
     return "";
 }
-static string regNameToIndex(string name){
+static int regNameToIndex(string name){
     if (name == "$t0") return 0;
     if (name == "$t1") return 1;
     if (name == "$t2") return 2;
@@ -73,7 +73,7 @@ public:
         }
         string regToReturn = regIndexToName(availRegs.back());
         availRegs.pop_back();
-        usedRegs.push_back(regToReturn);
+        usedRegs.push_back(regNameToIndex(regToReturn));
         return regToReturn;
     }
     void returnRegisterToPool(string reg){

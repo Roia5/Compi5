@@ -11,16 +11,17 @@ using namespace std;
 class emitter {
 	private:
 		RegisterHandler rh;
+		CodeBuffer buff;
 		int action3op(string act, string rdest, string rsrc, string src) {
-			return CodeBuffer.emit(act + " " + rdest + ", " + rsrc + ", " + src);
+			return buff.emit(act + " " + rdest + ", " + rsrc + ", " + src);
 		}
 		
 		int condjump(string cond, string rsrc, string src, string label) {
-			return CodeBuffer.emit(cond + " " + rsrc + ", " + src + ", " + label);
+			return buff.emit(cond + " " + rsrc + ", " + src + ", " + label);
 		}
 		
 		int jump(string jorjal, string label) {
-			return CodeBuffer.emit(jorjal + " " + label);
+			return buff.emit(jorjal + " " + label);
 		}
 		
 		void print_error(string fun, string error_address){
@@ -34,7 +35,8 @@ class emitter {
 		
 		static int valid_unique_label;
 	public:
-		emitter(RegisterHandler& rh) : rh(rh) { valid_unique_label(0) }
+		emitter(RegisterHandler& rh) : rh(rh) { valid_unique_label(0);
+												buff = CodeBuffer::instance(); }
 		void onFunctionCall(string name, vector<string> argumentRegs){	//saving all used registers by caller, $fp, $ra, argument registers, then resets pool.
 			vector<string> usedRegVec = rh.getUsedRegisters();
 			for(int i=0;i<usedRegVec.size();i++){
@@ -72,27 +74,27 @@ class emitter {
 			lw(rdest,numberToString(real_offset) + "($fp)");
 		}
 		void zeroTopBits(string reg){
-			CodeBuffer.emit("sll " + reg + ", " + reg + ", 24");	//shift left 24 bits
-			CodeBuffer.emit("srl " + reg + ", " + reg + ", 24");	//shift right 24 bits
+			buff.emit("sll " + reg + ", " + reg + ", 24");	//shift left 24 bits
+			buff.emit("srl " + reg + ", " + reg + ", 24");	//shift right 24 bits
 		}
 		//load address to register
 		int la(string rdest, string address) {
-			return CodeBuffer.emit("la " + rdest + ", " + address);
+			return buff.emit("la " + rdest + ", " + address);
 		}
 		
 		//load immediate to register
 		int li(string rdest, string im) {
-			return CodeBuffer.emit("li " + rdest + ", " + im);
+			return buff.emit("li " + rdest + ", " + im);
 		}
 		
 		//load word at adress to register
 		int lw(string rdest, string address) {
-			return CodeBuffer.emit("lw " + rdest + ", " + address);
+			return buff.emit("lw " + rdest + ", " + address);
 		}
 		
 		//store word from register to address
 		int sw(string rsrc, string address) {
-			return CodeBuffer.emit("sw " + rsrc + ", " + address);
+			return buff.emit("sw " + rsrc + ", " + address);
 		}
 		
 		//add src to rsrc and save to rdest
@@ -117,15 +119,15 @@ class emitter {
 			print_error("print", "errorZeroDiv");
 			
 			string valid_label = "div_ok_" + numberToString(++valid_unique_label);
-			CodeBuffer.emit(valid_label + ":");
-			CodeBuffer.bpatch(CodeBuffer.makelist(emitted), valid_label);
+			buff.emit(valid_label + ":");
+			buff.bpatch(buff.makelist(emitted), valid_label);
 			
 			return action3op("div", rdest, rsrc, src);
 		}
 		
 		//copy contect of source register to destination register
 		int mov(string rdest, string rsrc) {
-			return CodeBuffer.emit("move " + rdest + ", " + rsrc);
+			return buff.emit("move " + rdest + ", " + rsrc);
 		}
 		
 		//
@@ -169,12 +171,12 @@ class emitter {
 		}
 
 		int jr(){
-			return CodeBuffer.emit("jr $ra");
+			return buff.emit("jr $ra");
 		}
 		
 		//no operation
 		int nop() {
-			return CodeBuffer.emit("nop");
+			return buff.emit("nop");
 		}
 		
 		int arrayIsInRange(string arr, string idx) {
@@ -182,8 +184,8 @@ class emitter {
 			//string reg_idx = getAvailReg();
 			//loadVariable(reg_arr, int offset);
 			//loadVariable(reg_idx, int offset);
-			//CodeBuffer.emit("sub ");
-			//CodeBuffer.emit("nop");
+			//buff.emit("sub ");
+			//buff.emit("nop");
 			
 			return 0;
 		}

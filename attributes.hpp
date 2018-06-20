@@ -130,8 +130,6 @@ class TEntry : public VarType{
 		TEntry() {}
 		TEntry(string Name, string Type) : VarType(Type,Name) {}
 		TEntry(string Name, string Type, int Offset) : VarType(Type,Name), idOffset(Offset), kind(Var), arrSize(1) {} //var
-		TEntry(string Name, string Type, int Offset, int value) : VarType(Type,Name,value), idOffset(Offset), kind(Var), arrSize(1) {} //int var
-		TEntry(string Name, string Type, int Offset, bool value) : VarType(Type,Name,value), idOffset(Offset), kind(Var), arrSize(1) {} //bool var
 		TEntry(string Name, string Type, int Size, int Offset) : VarType(Type,Name), idOffset(Offset), kind(Array), arrSize(Size) {} //array
 		TEntry(string Name, string RetType, vector<TEntry> FuncArgs) : VarType(RetType,Name), kind(Func), funcArgs(FuncArgs) {} //function TBD: what to do with offset
 
