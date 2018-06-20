@@ -118,7 +118,10 @@ class emitter {
 		
 		//divide rsrc by src and save to rdest
 		int div(string rdest, string rsrc, string src) {
-			int emitted = beq(src, "0", "labelZeroDiv");
+			string error_reg = rh.getAvailReg();
+			li(error_reg, src);
+			int emitted = beq(error_reg, "0", "labelZeroDiv");
+			rh.returnRegisterToPool(error_reg);
 			
 			//print_error("print", "errorZeroDiv");
 			
@@ -184,8 +187,10 @@ class emitter {
 		}
 		
 		int arrayIsInRange(string arr_size, string idx) {
-			int idx_offset = get_var_offset(idx);
-			int emitted = bge(numberToString(idx_offset), arr_size, "labelOutOfRange");
+			string error_reg = rh.getAvailReg();
+			li(error_reg, idx);
+			int emitted = bge(error_reg, arr_size, "labelOutOfRange");
+			rh.returnRegisterToPool(error_reg);
 			
 			//print_error("print", "errorOutOfBounds");
 			

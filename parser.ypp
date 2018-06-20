@@ -332,7 +332,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																		exit(0);
 																	}
 																	
-																	//e.arrayIsInRange(numberToString(t->getArrSize()), );
+																	e.arrayIsInRange(numberToString(t->getArrSize()), $3.reg);
 																}
 		| Call SC
 		| RETURN SC {
@@ -528,7 +528,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																exit(0);
 															}
 															
-															//e.arrayIsInRange(numberToString(t->getArrSize()), );
+															e.arrayIsInRange(numberToString(t->getArrSize()), $3.reg);
 															
 															$$->setName($1->getName() + "[]");	
 															$$->setType(t->getType());
@@ -720,14 +720,14 @@ int main() {
 	int status = yyparse();
 	
 	/// print imp.
-	CodeBuffer.emit("print:");
-	CodeBuffer.emit("lw $a0,0($sp)");
-	CodeBuffer.emit("li $v0,4");
-	CodeBuffer.emit("syscall");
-	CodeBuffer.emit("jr $ra");
+	CodeBuffer::instance().emit("print:");
+	CodeBuffer::instance().emit("lw $a0,0($sp)");
+	CodeBuffer::instance().emit("li $v0,4");
+	CodeBuffer::instance().emit("syscall");
+	CodeBuffer::instance().emit("jr $ra");
 	
 	/// div by zero error fun
-	CodeBuffer.emit("labelZeroDiv:");
+	CodeBuffer::instance().emit("labelZeroDiv:");
 	string error_reg = register_handler.getAvailReg();
 	e.la(error_reg, "errorZeroDiv");
 	pushRegister(error_reg);
@@ -736,7 +736,7 @@ int main() {
 	e.jmp("end_of_program");
 	
 	/// index out of array range error fun
-	CodeBuffer.emit("labelOutOfRange:");
+	CodeBuffer::instance().emit("labelOutOfRange:");
 	string error_reg = register_handler.getAvailReg();
 	e.la(error_reg, "errorOutOfBounds");
 	e.pushRegister(error_reg);
