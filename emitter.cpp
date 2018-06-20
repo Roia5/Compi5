@@ -118,10 +118,10 @@ class emitter {
 		
 		//divide rsrc by src and save to rdest
 		int div(string rdest, string rsrc, string src) {
-			string error_reg = rh.getAvailReg();
-			li(error_reg, src);
-			int emitted = beq(error_reg, "0", "labelZeroDiv");
-			rh.returnRegisterToPool(error_reg);
+			//string error_reg = rh.getAvailReg();
+			//li(error_reg, src);
+			int emitted = beq(src, "0", "labelZeroDiv");
+			//rh.returnRegisterToPool(error_reg);
 			
 			//print_error("print", "errorZeroDiv");
 			
