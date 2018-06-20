@@ -65,7 +65,7 @@ int __destroy_stacks() {
 	ExitScope(); //exit general scope
 }
 
-void PrintTopStack() {
+/*void PrintTopStack() {
 	for (int i = 0; i < tables_stack.back().size(); i++) {
 		TEntry curr_entry = tables_stack.back()[i];
 		if (curr_entry.getKind() == Var)
@@ -79,7 +79,7 @@ void PrintTopStack() {
 			cout << curr_entry.getName() << " " <<  makeFunctionType(curr_entry.getType(), args_types) << " " << FUNCS_OFFSET << "\n";
 		}
 	}
-}
+}*/
 
 int InsertVar(string Name, string Type, VarType* t) {
 	if (isIdentifierExists(Name)) {
@@ -198,8 +198,8 @@ int StartScope() {
 }
 
 void ExitScope() {
-	endScope();
-	PrintTopStack();
+	//endScope();
+	//PrintTopStack();
 	PopStacks();
 }
 
