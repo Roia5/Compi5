@@ -305,28 +305,34 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 
 																
 
-		| ID LBRACK Exp RBRACK ASSIGN Exp SC					{if($3->getType()!="BYTE" && $3->getType()!="INT"){
-																	errorMismatch(yylineno);
-																	PopAllStacks();
-																	exit(0);
-																}
-																TEntry* t = findByID($1->getName());
-																if(!t){
-																	errorUndef(yylineno, $1->getName());
-																	PopAllStacks();
-																	exit(0);
-																}
-																if(t->getKind() != Array){
-																	errorMismatch(yylineno);
-																	PopAllStacks();
-																	exit(0);
-																}	
-																if((t->getType() != $6->getType())&&((t->getType() != "INT") ||
-																	($6->getType() != "BYTE"))){
-																	errorMismatch(yylineno);
-																	PopAllStacks();
-																	exit(0);
-																}	
+		| ID LBRACK Exp RBRACK ASSIGN Exp SC					{
+																	if($3->getType()!="BYTE" && $3->getType()!="INT") {
+																		errorMismatch(yylineno);
+																		PopAllStacks();
+																		exit(0);
+																	}
+																	
+																	TEntry* t = findByID($1->getName());
+																	if(!t){
+																		errorUndef(yylineno, $1->getName());
+																		PopAllStacks();
+																		exit(0);
+																	}
+																	
+																	if(t->getKind() != Array){
+																		errorMismatch(yylineno);
+																		PopAllStacks();
+																		exit(0);
+																	}
+																	
+																	if((t->getType() != $6->getType())&&((t->getType() != "INT") ||
+																		($6->getType() != "BYTE"))){
+																		errorMismatch(yylineno);
+																		PopAllStacks();
+																		exit(0);
+																	}
+																	
+																	
 																}
 		| Call SC
 		| RETURN SC {

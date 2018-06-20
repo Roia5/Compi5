@@ -32,6 +32,12 @@ class emitter {
 			jal("end_of_program");
 		}
 		
+		int get_var_offset(string var) {
+			TEntry* evar = findByID(var);
+			//if (!evar) problem...
+			return evar->getOffset();
+		}
+		
 		static int valid_unique_label;
 	public:
 		emitter(RegisterHandler& rh) : rh(rh) { valid_unique_label = 0;
@@ -178,13 +184,15 @@ class emitter {
 			return CodeBuffer::instance().emit("nop");
 		}
 		
-		int arrayIsInRange(string arr, string idx) {
-			//string reg_arr = getAvailReg();
-			//string reg_idx = getAvailReg();
-			//loadVariable(reg_arr, int offset);
-			//loadVariable(reg_idx, int offset);
-			//CodeBuffer::instance().emit("sub ");
-			//CodeBuffer::instance().emit("nop");
+		int arrayIsInRange(string arr_size, string idx) {
+			int idx_offset = get_var_offset(idx);
+			int emitted = blt(numberToString(idx_offset), arr_size, " ");
+			
+			print_error("print", "errorOutOfBounds");
+			
+			string valid_label = "bounds_ok_" + numberToString(++valid_unique_label);
+			CodeBuffer.emit(valid_label + ":");
+			CodeBuffer.bpatch(CodeBuffer.makelist(emitted), valid_label);
 			
 			return 0;
 		}
