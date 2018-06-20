@@ -38,10 +38,9 @@ class emitter {
 			return evar->getOffset();
 		}
 		
-		static int valid_unique_label;
+		//static int valid_unique_label;
 	public:
-		emitter(RegisterHandler& rh) : rh(rh) { valid_unique_label = 0;
-											 }
+		emitter(RegisterHandler& rh) : rh(rh) {} // valid_unique_label = 0;
 		void onFunctionCall(string name, vector<string> argumentRegs){	//saving all used registers by caller, $fp, $ra, argument registers, then resets pool.
 			vector<string> usedRegVec = rh.getUsedRegisters();
 			for(int i=0;i<usedRegVec.size();i++){
@@ -119,13 +118,13 @@ class emitter {
 		
 		//divide rsrc by src and save to rdest
 		int div(string rdest, string rsrc, string src) {
-			int emitted = bne(src, "0", " ");
+			int emitted = beq(src, "0", "labelZeroDiv");
 			
-			print_error("print", "errorZeroDiv");
+			//print_error("print", "errorZeroDiv");
 			
-			string valid_label = "div_ok_" + numberToString(++valid_unique_label);
-			CodeBuffer::instance().emit(valid_label + ":");
-			CodeBuffer::instance().bpatch(CodeBuffer::instance().makelist(emitted), valid_label);
+			//string valid_label = "div_ok_" + numberToString(++valid_unique_label);
+			//CodeBuffer::instance().emit(valid_label + ":");
+			//CodeBuffer::instance().bpatch(CodeBuffer::instance().makelist(emitted), valid_label);
 			
 			return action3op("div", rdest, rsrc, src);
 		}
@@ -186,13 +185,13 @@ class emitter {
 		
 		int arrayIsInRange(string arr_size, string idx) {
 			int idx_offset = get_var_offset(idx);
-			int emitted = blt(numberToString(idx_offset), arr_size, " ");
+			int emitted = bge(numberToString(idx_offset), arr_size, "labelOutOfRange");
 			
-			print_error("print", "errorOutOfBounds");
+			//print_error("print", "errorOutOfBounds");
 			
-			string valid_label = "bounds_ok_" + numberToString(++valid_unique_label);
-			CodeBuffer.emit(valid_label + ":");
-			CodeBuffer.bpatch(CodeBuffer.makelist(emitted), valid_label);
+			//string valid_label = "bounds_ok_" + numberToString(++valid_unique_label);
+			//CodeBuffer.emit(valid_label + ":");
+			//CodeBuffer.bpatch(CodeBuffer.makelist(emitted), valid_label);
 			
 			return 0;
 		}
