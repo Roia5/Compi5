@@ -39,10 +39,12 @@ class VarType {
 		VarType() {}
 		VarType(string varType, string name) : vType(varType), name(name), isNamed(true) {}
 		VarType(string varType, string name, int value) : vType(varType), name(name), intVal(value), isNamed(true) {}
-		VarType(string varType, string name, string op) : vType(varType), name(name), op(op) {}
 		VarType(string varType, string name, bool value) : vType(varType), name(name), boolVal(value), isNamed(true) {}
 	void setBoolVal(bool value){
 		this->boolVal = value;
+	}
+	void setOp(string op){
+		this->op = op;
 	}
 	bool getBoolVal(){
 		return this->boolVal;

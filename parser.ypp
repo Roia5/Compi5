@@ -574,7 +574,9 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																$$->setType("BYTE");
 															string reg1 = $1->getRegister();
 															string reg2 = $3->getRegister();
+															
 															if($2->getOp()=="+"){
+																
 																e.add(reg1,reg1,reg2);
 															}
 															else {
@@ -753,6 +755,9 @@ int main() {
 	emit("nop");
 	
 	__destroy_stacks();
+	CodeBuffer::instance().printDataBuffer();
+	cout << endl;
+	CodeBuffer::instance().printCodeBuffer();
     return status;
 }
 void yyerror(const char*) { errorSyn(yylineno); exit(0); }

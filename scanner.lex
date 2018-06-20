@@ -54,14 +54,14 @@ break 																		return BREAK;
 
 
 
-\x3C                                                                        { yylval = new VarType("","","<"); return RELOP_NORMAL;}
-\x3E                                                                        { yylval = new VarType("","",">"); return RELOP_NORMAL;}
-\x3C\x3D                                                                    { yylval = new VarType("","","<="); return RELOP_NORMAL;}
-\x3E\x3D                                                                    { yylval = new VarType("","",">="); return RELOP_NORMAL;}
-\x2A                                                                        { yylval = new VarType("","","*"); return BINOP_MULT;}
-\x2F                                                                        { yylval = new VarType("","","/"); return BINOP_MULT;}
-\x2B                                                                        { yylval = new VarType("","","+"); return BINOP_ADD;}
-\x2D                                                                        { yylval = new VarType("","","-"); return BINOP_ADD;}
+\x3C                                                                        { yylval = new VarType("",""); yylval->setOp("<");return RELOP_NORMAL;}
+\x3E                                                                        { yylval = new VarType("",""); yylval->setOp(">");return RELOP_NORMAL;}
+\x3C\x3D                                                                    { yylval = new VarType("",""); yylval->setOp("<=");return RELOP_NORMAL;}
+\x3E\x3D                                                                    { yylval = new VarType("",""); yylval->setOp(">=");return RELOP_NORMAL;}
+\x2A                                                                        { yylval = new VarType("",""); yylval->setOp("*");return BINOP_MULT;}
+\x2F                                                                        { yylval = new VarType("",""); yylval->setOp("/");return BINOP_MULT;}
+\x2B                                                                        { yylval = new VarType("",""); yylval->setOp("+"); return BINOP_ADD;}
+\x2D                                                                        { yylval = new VarType("",""); yylval->setOp("-");return BINOP_ADD;}
 {letter}{id_letter}* 														{ yylval = new TEntry(yytext,""); return ID;}
 0|[1-9]{digit}* 															{ yylval = new VarType("","",atoi(yytext)); return NUM; }
 \x22([^\n\r\"\\]|\\[rnt"\\])+\x22											{ yylval = new VarType("STRING",""); return STRING;}
