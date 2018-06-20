@@ -6,7 +6,7 @@
 	#include <vector>
 	#include "output.hpp"
 	#include "bp.hpp"
-	
+	#include "emitter.cpp"
     using namespace std;
 	using namespace output;
     
@@ -172,7 +172,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																string reg = register_handler.getAvailReg();
 																if($1->getType() == "INT" || $1->getType() == "BYTE"){
 																	e.li(reg,"0");
-																	e.pushReg(reg);
+																	e.pushRegister(reg);
 																}
 																else {
 																	//todo handle false var initialize
@@ -405,7 +405,7 @@ ElsePart :		/*epsilon*/ %prec IF
 Call :		ID LPAREN ExpList
 			{ 
 				e.onFunctionCall($1->getName(),$3->getRegisterList());
-			} RPAREN						{onFunctionReturn(); TEntry* t;
+			} RPAREN						{e.onFunctionReturn(); TEntry* t;
 															string old3 = $3->getType();
 															if($1->getName()=="print"){
 																$$->setType("VOID");
@@ -457,7 +457,8 @@ Call :		ID LPAREN ExpList
 															
 															}
 		| ID LPAREN { 
-				e.onFunctionCall($1->getName());
+				vector<string> emptyVec;
+				e.onFunctionCall($1->getName(),emptyVec);
 			} RPAREN									{
 															
 															TEntry* t = findByID($1->getName());
@@ -548,10 +549,10 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															string reg1 = $1->getRegister();
 															string reg2 = $3->getRegister();
 															if($2->getOp()=="*"){
-																mul(reg1,reg1,reg2);
+																e.mul(reg1,reg1,reg2);
 															}
 															else {
-																div(reg1,reg1,reg2);
+																e.div(reg1,reg1,reg2);
 															}	
 															$$->setRegister(reg1);
 															if($$->getType()=="BYTE"){
@@ -598,7 +599,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															else {
 																$$->setType(t->getType());
 																$$->setRegister(register_handler.getAvailReg());
-																e.loadVar($$->getRegister(), t->getOffset());
+																e.loadVariable($$->getRegister(), t->getOffset());
 															}
 															/*if(t->getType()=="INT" || t->getType()=="BYTE"){
 																$$->setIntVal(t->getIntVal());
@@ -613,7 +614,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 		| NUM												{$$->setType("INT");
 															$$->setIntVal($1->getIntVal());
 															string reg = register_handler.getAvailReg();
-															e.li(reg,$1->getIntVal());
+															e.li(reg,numberToString($1->getIntVal()));
 															$$->setRegister(reg);
 															}
 		| NUM B												{$$->setType("BYTE");
@@ -625,7 +626,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															}
 															$$->setIntVal($1->getIntVal());	
 															string reg = register_handler.getAvailReg();
-															e.li(reg,$1->getIntVal());
+															e.li(reg,numberToString($1->getIntVal()));
 															$$->setRegister(reg);
 															}
 		| STRING											
@@ -711,8 +712,8 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 %%
 
 int main() {
-	CodeBuffer.emitData("errorOutOfBounds: .ascii \"Error index out of bounds\n\"");
-	CodeBuffer.emitData("errorZeroDiv: .ascii \"Error division by zero\n\"");
+	CodeBuffer::instance().emitData("errorOutOfBounds: .ascii \"Error index out of bounds\n\"");
+	CodeBuffer::instance().emitData("errorZeroDiv: .ascii \"Error division by zero\n\"");
 	
 	//yydebug = 1;
 	__init_stacks();
@@ -738,13 +739,18 @@ int main() {
 	CodeBuffer.emit("labelOutOfRange:");
 	string error_reg = register_handler.getAvailReg();
 	e.la(error_reg, "errorOutOfBounds");
-	pushRegister(error_reg);
+	e.pushRegister(error_reg);
 	register_handler.returnRegisterToPool(error_reg);
 	e.jal("print");
 	e.jmp("end_of_program");
 	
-	CodeBuffer.emit("end_of_program:");
-	CodeBuffer.emit("nop");
+	CodeBuffer::instance().emit("print:");
+	CodeBuffer::instance().emit("lw $a0,0($sp)");
+	CodeBuffer::instance().emit("li $v0,4");
+	CodeBuffer::instance().emit("syscall");
+	CodeBuffer::instance().emit("jr $ra");
+	CodeBuffer::instance().emit("end_of_program:");
+	CodeBuffer::instance().emit("nop");
 	
 	__destroy_stacks();
     return status;
