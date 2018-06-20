@@ -332,7 +332,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																		exit(0);
 																	}
 																	
-																	//e.arrayIsInRange(numberToString(t->getArrSize()), );
+																	e.arrayIsInRange(numberToString(t->getArrSize()), $3.reg);
 																}
 		| Call SC
 		| RETURN SC {
@@ -528,7 +528,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																exit(0);
 															}
 															
-															//e.arrayIsInRange(numberToString(t->getArrSize()), );
+															e.arrayIsInRange(numberToString(t->getArrSize()), $3.reg);
 															
 															$$->setName($1->getName() + "[]");	
 															$$->setType(t->getType());
