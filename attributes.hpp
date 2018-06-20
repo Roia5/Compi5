@@ -202,6 +202,7 @@ bool doesFunctionExist(string, string);
 
 string numberToString(int);
 
+void emit(string msg);
 #ifndef YYSTYPE
 #define YYSTYPE VarType*
 #endif

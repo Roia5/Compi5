@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <sstream>
-
+#include "attributes.cpp"
 using namespace std;
 #define NUM_REGS 18
 

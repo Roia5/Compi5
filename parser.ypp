@@ -720,14 +720,14 @@ int main() {
 	int status = yyparse();
 	
 	/// print imp.
-	CodeBuffer.emit("print:");
-	CodeBuffer.emit("lw $a0,0($sp)");
-	CodeBuffer.emit("li $v0,4");
-	CodeBuffer.emit("syscall");
-	CodeBuffer.emit("jr $ra");
+	emit("print:");
+	emit("lw $a0,0($sp)");
+	emit("li $v0,4");
+	emit("syscall");
+	emit("jr $ra");
 	
 	/// div by zero error fun
-	CodeBuffer.emit("labelZeroDiv:");
+	emit("labelZeroDiv:");
 	string error_reg = register_handler.getAvailReg();
 	e.la(error_reg, "errorZeroDiv");
 	pushRegister(error_reg);
@@ -736,7 +736,7 @@ int main() {
 	e.jmp("end_of_program");
 	
 	/// index out of array range error fun
-	CodeBuffer.emit("labelOutOfRange:");
+	emit("labelOutOfRange:");
 	string error_reg = register_handler.getAvailReg();
 	e.la(error_reg, "errorOutOfBounds");
 	e.pushRegister(error_reg);
@@ -744,13 +744,13 @@ int main() {
 	e.jal("print");
 	e.jmp("end_of_program");
 	
-	CodeBuffer::instance().emit("print:");
-	CodeBuffer::instance().emit("lw $a0,0($sp)");
-	CodeBuffer::instance().emit("li $v0,4");
-	CodeBuffer::instance().emit("syscall");
-	CodeBuffer::instance().emit("jr $ra");
-	CodeBuffer::instance().emit("end_of_program:");
-	CodeBuffer::instance().emit("nop");
+	emit("print:");
+	emit("lw $a0,0($sp)");
+	emit("li $v0,4");
+	emit("syscall");
+	emit("jr $ra");
+	emit("end_of_program:");
+	emit("nop");
 	
 	__destroy_stacks();
     return status;

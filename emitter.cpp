@@ -12,15 +12,15 @@ class emitter {
 	private:
 		RegisterHandler rh;
 		int action3op(string act, string rdest, string rsrc, string src) {
-			return CodeBuffer::instance().emit(act + " " + rdest + ", " + rsrc + ", " + src);
+			return emit(act + " " + rdest + ", " + rsrc + ", " + src);
 		}
 		
 		int condjump(string cond, string rsrc, string src, string label) {
-			return CodeBuffer::instance().emit(cond + " " + rsrc + ", " + src + ", " + label);
+			return emit(cond + " " + rsrc + ", " + src + ", " + label);
 		}
 		
 		int jump(string jorjal, string label) {
-			return CodeBuffer::instance().emit(jorjal + " " + label);
+			return emit(jorjal + " " + label);
 		}
 		
 		void print_error(string fun, string error_address){
@@ -78,27 +78,27 @@ class emitter {
 			lw(rdest,numberToString(real_offset) + "($fp)");
 		}
 		void zeroTopBits(string reg){
-			CodeBuffer::instance().emit("sll " + reg + ", " + reg + ", 24");	//shift left 24 bits
-			CodeBuffer::instance().emit("srl " + reg + ", " + reg + ", 24");	//shift right 24 bits
+			emit("sll " + reg + ", " + reg + ", 24");	//shift left 24 bits
+			emit("srl " + reg + ", " + reg + ", 24");	//shift right 24 bits
 		}
 		//load address to register
 		int la(string rdest, string address) {
-			return CodeBuffer::instance().emit("la " + rdest + ", " + address);
+			return emit("la " + rdest + ", " + address);
 		}
 		
 		//load immediate to register
 		int li(string rdest, string im) {
-			return CodeBuffer::instance().emit("li " + rdest + ", " + im);
+			return emit("li " + rdest + ", " + im);
 		}
 		
 		//load word at adress to register
 		int lw(string rdest, string address) {
-			return CodeBuffer::instance().emit("lw " + rdest + ", " + address);
+			return emit("lw " + rdest + ", " + address);
 		}
 		
 		//store word from register to address
 		int sw(string rsrc, string address) {
-			return CodeBuffer::instance().emit("sw " + rsrc + ", " + address);
+			return emit("sw " + rsrc + ", " + address);
 		}
 		
 		//add src to rsrc and save to rdest
@@ -131,7 +131,7 @@ class emitter {
 		
 		//copy contect of source register to destination register
 		int mov(string rdest, string rsrc) {
-			return CodeBuffer::instance().emit("move " + rdest + ", " + rsrc);
+			return emit("move " + rdest + ", " + rsrc);
 		}
 		
 		//
@@ -175,12 +175,12 @@ class emitter {
 		}
 
 		int jr(){
-			return CodeBuffer::instance().emit("jr $ra");
+			return emit("jr $ra");
 		}
 		
 		//no operation
 		int nop() {
-			return CodeBuffer::instance().emit("nop");
+			return emit("nop");
 		}
 		
 		int arrayIsInRange(string arr_size, string idx) {

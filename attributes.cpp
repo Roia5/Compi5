@@ -321,3 +321,7 @@ string numberToString(int number) {
 	result = convert.str();
 	return result;
 }
+
+void emit(string msg){
+	CodeBuffer::instance().emit(msg);
+}
