@@ -32,12 +32,12 @@ la $t6, errorZeroDiv
 subu $sp, $sp, 4
 sw $t6, ($sp)
 jal print
-j end_of_program
+li $v0,10
+syscall
 labelOutOfRange:
 la $t6, errorOutOfBounds
 subu $sp, $sp, 4
 sw $t6, ($sp)
 jal print
-j end_of_program
-end_of_program:
-nop
+li $v0,10
+syscall

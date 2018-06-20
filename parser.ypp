@@ -735,7 +735,8 @@ int main() {
 	e.pushRegister(error_reg);
 	register_handler.returnRegisterToPool(error_reg);
 	e.jal("print");
-	e.jmp("end_of_program");
+	emit("li $v0,10"); //terminate program
+	emit("syscall");
 	
 	/// index out of array range error fun
 	emit("labelOutOfRange:");
@@ -744,11 +745,8 @@ int main() {
 	e.pushRegister(error_reg);
 	register_handler.returnRegisterToPool(error_reg);
 	e.jal("print");
-	e.jmp("end_of_program");
-	
-	// exit point
-	emit("end_of_program:");
-	emit("nop");
+	emit("li $v0,10"); //terminate program
+	emit("syscall");
 	
 	__destroy_stacks();
 	CodeBuffer::instance().printDataBuffer();
