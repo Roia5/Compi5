@@ -191,8 +191,8 @@ class emitter {
 			print_error("print", "errorOutOfBounds");
 			
 			string valid_label = "bounds_ok_" + numberToString(++valid_unique_label);
-			CodeBuffer.emit(valid_label + ":");
-			CodeBuffer.bpatch(CodeBuffer.makelist(emitted), valid_label);
+			CodeBuffer::instance().emit(valid_label + ":");
+			CodeBuffer::instance().bpatch(CodeBuffer::instance().makelist(emitted), valid_label);
 			
 			return 0;
 		}
