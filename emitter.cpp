@@ -56,7 +56,7 @@ class emitter {
 		}
 		void onFunctionReturn(){
 			
-			jr();
+
 		}
 		void pushRegister(string reg){
 			sub("$sp","$sp","4");
@@ -186,6 +186,23 @@ class emitter {
 			return emit("nop");
 		}
 		
+		void funcStart(string name) {
+			emit(".globl " + name);
+			emit(".ent  " + name);
+			emit(name + ":");
+		}
+
+		void funcEnd(string name){
+			if(name == "main"){
+				emit("li $v0,10"); //terminate program
+				emit("syscall");
+			}
+			else {
+				jr();
+			}
+			emit(".end " + name);
+		}
+
 		int arrayIsInRange(string arr_size, string idx) {
 			string error_reg = rh.getAvailReg();
 			li(error_reg, idx);
