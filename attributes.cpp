@@ -89,16 +89,7 @@ int InsertVar(string Name, string Type, VarType* t) {
 	}
 	
 	int curr_off = offsets_stack.back();
-	if(Type == SymbolTableAliases[typeInt] || Type == SymbolTableAliases[typeByte]){
-		tables_stack.back().push_back(TEntry(Name, Type, curr_off, t->getIntVal()));
-	}
-	else if(Type==SymbolTableAliases[typeBool]){
-		tables_stack.back().push_back(TEntry(Name, Type, curr_off, t->getBoolVal()));
-	}
-	else{
-		tables_stack.back().push_back(TEntry(Name, Type, curr_off));
-	}
-	
+	tables_stack.back().push_back(TEntry(Name, Type, curr_off));
 	offsets_stack.pop_back();
 	offsets_stack.push_back(curr_off + 1);
 	return 0;
