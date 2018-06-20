@@ -726,8 +726,13 @@ int main() {
 	emit("lw $a0,0($sp)");
 	emit("li $v0,4");
 	emit("syscall");
-	
 	e.funcEnd("print");
+
+	e.funcStart("printi");
+	emit("lw $a0,0($sp)");
+	emit("li $v0,1");
+	emit("syscall");
+	e.funcEnd("printi");
 
 	int status = yyparse();
 	

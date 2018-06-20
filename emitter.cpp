@@ -187,9 +187,11 @@ class emitter {
 		}
 		
 		void funcStart(string name) {
+			emit("");
 			emit(".globl " + name);
 			emit(".ent  " + name);
 			emit(name + ":");
+			emit("");
 		}
 
 		void funcEnd(string name){
@@ -201,6 +203,7 @@ class emitter {
 				jr();
 			}
 			emit(".end " + name);
+			emit("");
 		}
 
 		int arrayIsInRange(string arr_size, string idx) {
