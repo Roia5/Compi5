@@ -56,7 +56,7 @@ class emitter {
 		}
 		void onFunctionReturn(){
 			
-			jr();
+
 		}
 		void pushRegister(string reg){
 			sub("$sp","$sp","4");
@@ -193,6 +193,13 @@ class emitter {
 		}
 
 		void funcEnd(string name){
+			if(name == "main"){
+				emit("li $v0,10"); //terminate program
+				emit("syscall");
+			}
+			else {
+				jr();
+			}
 			emit(".end " + name);
 		}
 

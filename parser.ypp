@@ -721,15 +721,15 @@ int main() {
 	
 	//yydebug = 1;
 	__init_stacks();
-	int status = yyparse();
-	
 	/// print imp.
 	e.funcStart("print");
 	emit("lw $a0,0($sp)");
 	emit("li $v0,4");
 	emit("syscall");
-	emit("jr $ra");
+	
 	e.funcEnd("print");
+
+	int status = yyparse();
 	
 	/// div by zero error fun
 	emit("labelZeroDiv:");
@@ -740,7 +740,7 @@ int main() {
 	e.jal("print");
 	emit("li $v0,10"); //terminate program
 	emit("syscall");
-	
+
 	/// index out of array range error fun
 	emit("labelOutOfRange:");
 	error_reg = register_handler.getAvailReg();
