@@ -746,11 +746,7 @@ int main() {
 	e.jal("print");
 	e.jmp("end_of_program");
 	
-	emit("print:");
-	emit("lw $a0,0($sp)");
-	emit("li $v0,4");
-	emit("syscall");
-	emit("jr $ra");
+	// exit point
 	emit("end_of_program:");
 	emit("nop");
 	
