@@ -336,7 +336,15 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																	
 																	e.arrayIsInRange(numberToString(t->getArrSize()), $3->getRegister());
 																	
-																	if ($6->getType() == Array) {
+																	//if ($6->getKind() != Array) {
+																		string resreg = $1->getRegister();
+																		e.la(resreg, $1->getName());
+																		e.add(resreg, resreg, $3->getRegister());
+																		e.add(resreg, resreg, $3->getRegister());
+																		e.add(resreg, resreg, $3->getRegister());
+																		e.add(resreg, resreg, $3->getRegister());
+																		e.mov(resreg, $6->getRegister());
+																	//} else {
 																		//int j(0);
 																		//for (int i(0); i < $1->getArrSize(); i++) {
 																		//	string resreg = numberToString($1->getRegister());
@@ -345,12 +353,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																		//	e.add(resreg, resreg, numberToString(4*$3->getRegister()));
 																		//	e.mov(resreg, numberToString($6->getRegister()));
 																		//}
-																	} else {
-																		string resreg = numberToString($1->getRegister());
-																		e.la(resreg, $1->getName());
-																		e.add(resreg, resreg, numberToString(4*$3->getRegister()));
-																		e.mov(resreg, numberToString($6->getRegister()));
-																	}
+																	//}
 																}
 		| Call SC
 		| RETURN SC {
@@ -550,8 +553,11 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															
 															string resreg = register_handler.getAvailReg();
 															e.la(resreg, $1->getName());
-															e.add(resreg, resreg, numberToString(4*$3->getRegister()));
-															e.lw(numberToString($$->getRegister()), resreg);
+															e.add(resreg, resreg, $3->getRegister());
+															e.add(resreg, resreg, $3->getRegister());
+															e.add(resreg, resreg, $3->getRegister());
+															e.add(resreg, resreg, $3->getRegister());
+															e.lw($$->getRegister(), resreg);
 															register_handler.returnRegisterToPool(resreg);
 															
 															$$->setName($1->getName() + "[]");	
