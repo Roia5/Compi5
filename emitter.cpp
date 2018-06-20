@@ -186,6 +186,16 @@ class emitter {
 			return emit("nop");
 		}
 		
+		void funcStart(string name) {
+			emit(".globl " + name);
+			emit(".ent  " + name);
+			emit(name + ":");
+		}
+
+		void funcEnd(string name){
+			emit(".end " + name);
+		}
+
 		int arrayIsInRange(string arr_size, string idx) {
 			string error_reg = rh.getAvailReg();
 			li(error_reg, idx);
