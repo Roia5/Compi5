@@ -51,7 +51,10 @@ Funcs :		/*epsilon*/
 ;
 
 FuncDecl :		RetType ID LPAREN Formals RPAREN {
-													e.funcStart($2->getName());
+													
+														e.funcStart($2->getName());
+													
+													
 													string returnType = $1->getType()+"_"+$4->getType();
 													InsertFunction($2->getName(), returnType,$4->getEntryKinds(), $4->getArgNames());
 													$2->setType(returnType);
@@ -391,6 +394,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 					}
 				}
 			}
+			e.mov("$v0",$2->getRegister());
 		}
 		| IF  LPAREN Exp RPAREN {
 			if($3->getType()!="BOOL"){
@@ -426,7 +430,7 @@ ElsePart :		/*epsilon*/ %prec IF
 Call :		ID LPAREN ExpList
 			{ 
 				e.onFunctionCall($1->getName(),$3->getRegisterList());
-			} RPAREN						{e.onFunctionReturn(); TEntry* t;
+			} RPAREN						{e.onFunctionReturn($3->getRegisterList()); TEntry* t;
 															string old3 = $3->getType();
 															if($1->getName()=="print"){
 																$$->setType("VOID");
@@ -480,7 +484,8 @@ Call :		ID LPAREN ExpList
 		| ID LPAREN { 
 				vector<string> emptyVec;
 				e.onFunctionCall($1->getName(),emptyVec);
-			} RPAREN									{
+			} RPAREN									{vector<string> emptyVec;
+				e.onFunctionReturn(emptyVec); 
 															
 															TEntry* t = findByID($1->getName());
 															if(!t || t->getKind()!=Func){
@@ -642,7 +647,10 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 
 															
 															}
-		| Call												{$$->setType($1->getType());}
+		| Call												{$$->setType($1->getType());
+															$$->setRegister("$v0");
+		
+		}
 		| NUM												{$$->setType("INT");
 															$$->setIntVal($1->getIntVal());
 															string reg = register_handler.getAvailReg();
@@ -750,6 +758,17 @@ int main() {
 	//yydebug = 1;
 	__init_stacks();
 	/// print imp.
+
+
+
+	int ret = e.buildMain();
+	vector<int> mainList = CodeBuffer::instance().makelist(ret);
+
+	int status = yyparse();
+
+	string mainLabel = getFunctionLabel("main");
+	CodeBuffer::instance().bpatch(mainList,mainLabel);
+
 	e.funcStart("print");
 	emit("lw $a0,0($sp)");
 	emit("li $v0,4");
@@ -762,17 +781,16 @@ int main() {
 	emit("syscall");
 	e.funcEnd("printi");
 
-	int status = yyparse();
-	
 	/// div by zero error fun
 	emit("labelZeroDiv:");
 	string error_reg = register_handler.getAvailReg();
 	e.la(error_reg, "errorZeroDiv");
 	e.pushRegister(error_reg);
 	register_handler.returnRegisterToPool(error_reg);
-	e.jal("print");
+	e.jal("_print_");
 	emit("li $v0,10"); //terminate program
 	emit("syscall");
+	emit("");
 
 	/// index out of array range error fun
 	emit("labelOutOfRange:");
@@ -780,7 +798,7 @@ int main() {
 	e.la(error_reg, "errorOutOfBounds");
 	e.pushRegister(error_reg);
 	register_handler.returnRegisterToPool(error_reg);
-	e.jal("print");
+	e.jal("_print_");
 	emit("li $v0,10"); //terminate program
 	emit("syscall");
 	

@@ -42,21 +42,50 @@ class emitter {
 	public:
 		emitter(RegisterHandler& rh) : rh(rh) {} // valid_unique_label = 0;
 		void onFunctionCall(string name, vector<string> argumentRegs){	//saving all used registers by caller, $fp, $ra, argument registers, then resets pool.
-			vector<string> usedRegVec = rh.getUsedRegisters();
-			for(int i=0;i<usedRegVec.size();i++){
+			//vector<string> usedRegVec = rh.getUsedRegisters();
+			/*for(int i=0;i<usedRegVec.size();i++){
 				pushRegister(usedRegVec[i]);
+			}*/
+			for(int i=0;i<18;i++){
+				pushRegister(regIndexToName(i));
 			}
 			pushRegister("$fp");
 			pushRegister("$ra");
 			for(int i=0;i<argumentRegs.size();i++){
 				pushRegister(argumentRegs[i]);
 			}
-			rh.resetPool();
-			jal(name);
+			//rh.resetPool();
+			string real_name = "_" + name + "_";
+			jal(real_name);
 		}
-		void onFunctionReturn(){
-			
+		void onFunctionReturn(vector<string> argumentRegs){
+			for(int i=0;i<argumentRegs.size();i++){
+				popRegister(argumentRegs[i]);
+			}
+			popRegister("$ra");
+			popRegister("$fp");
+			for(int i=17;i>=0;i--){
+				popRegister(regIndexToName(i));
+			}
 
+		}
+		int buildMain(){
+			emit("");
+			emit(".globl main");
+			emit(".ent  main");
+			emit("main:");
+			emit("");
+			mov("$fp","$sp");
+			//pushRegister("$fp");
+			//pushRegister("$ra");
+			int ret = emit ("jal ");
+			//popRegister("$ra");
+			//popRegister("$fp");
+			emit("li $v0,10"); //terminate program
+			emit("syscall");
+			emit(".end main");
+			emit("");
+			return ret;
 		}
 		void pushRegister(string reg){
 			sub("$sp","$sp","4");
@@ -74,7 +103,7 @@ class emitter {
 			}
 		}
 		void loadVariable(string rdest, int offset){
-			int real_offset = -4*offset;
+			int real_offset = -4*(offset);
 			lw(rdest,numberToString(real_offset) + "($fp)");
 		}
 		void zeroTopBits(string reg){
@@ -187,22 +216,20 @@ class emitter {
 		}
 		
 		void funcStart(string name) {
+			string real_name = "_" + name + "_";
 			emit("");
-			emit(".globl " + name);
-			emit(".ent  " + name);
-			emit(name + ":");
+			emit(".globl " + real_name);
+			emit(".ent  " + real_name);
+			emit(real_name + ":");
 			emit("");
+        	mov("$fp", "$sp");
+        	sub("$fp","$fp","4");
 		}
 
 		void funcEnd(string name){
-			if(name == "main"){
-				emit("li $v0,10"); //terminate program
-				emit("syscall");
-			}
-			else {
-				jr();
-			}
-			emit(".end " + name);
+			string real_name = "_" + name + "_";
+			jr();
+			emit(".end " + real_name);
 			emit("");
 		}
 

@@ -1,3 +1,13 @@
+int f(int y){
+	return y;
+}
+
+int fact(int n){
+	return n-1;
+}
 void main(){
-	int x = 5+5;
+	int x = f(4);
+	printi(f(7));
+	printi(x);
+	printi(fact(6));
 }

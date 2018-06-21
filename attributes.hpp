@@ -124,6 +124,7 @@ class NumType : public VarType {
 //Table Entry - var, array or a function
 class TEntry : public VarType{
 	protected:
+		string label;
 		int idOffset;
 		EntryKind kind;
 		int arrSize;
@@ -133,8 +134,12 @@ class TEntry : public VarType{
 		TEntry(string Name, string Type) : VarType(Type,Name) {}
 		TEntry(string Name, string Type, int Offset) : VarType(Type,Name), idOffset(Offset), kind(Var), arrSize(1) {} //var
 		TEntry(string Name, string Type, int Size, int Offset) : VarType(Type,Name), idOffset(Offset), kind(Array), arrSize(Size) {} //array
-		TEntry(string Name, string RetType, vector<TEntry> FuncArgs) : VarType(RetType,Name), kind(Func), funcArgs(FuncArgs) {} //function TBD: what to do with offset
+		TEntry(string Name, string RetType, vector<TEntry> FuncArgs, string label) : VarType(RetType,Name), label(label), 
+									kind(Func), funcArgs(FuncArgs) {} //function TBD: what to do with offset
 
+		string getLabel(){
+			return this->label;
+		}
 		void setOffset(int offset) {
 			idOffset = offset;
 		}
@@ -195,6 +200,8 @@ TEntry* findByID(string);
 string getCurrentFunctionType();
 
 bool parameterFits(TEntry, string);
+
+string getFunctionLabel(string name);
 
 bool allParametersFit(vector<TEntry>, vector<string>);
 

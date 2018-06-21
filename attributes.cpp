@@ -172,7 +172,7 @@ int InsertFunction(string Name, string RetType, vector<TEntry> Args) {
 			}
 	}
 		
-	tables_stack.back().push_back(TEntry(Name, RetType, arguments));
+	tables_stack.back().push_back(TEntry(Name, RetType, arguments, Name));
 	
 	StartScope();
 	//insert arguments to stack
@@ -285,6 +285,10 @@ vector<string> splitType(string type){
 	//cout << type << endl;
 	//tokens now reside in types vector
 	return types;
+}
+string getFunctionLabel(string name){
+	TEntry* t = findByID(name);
+	return "_" + t->getLabel() + "_";
 }
 bool doesFunctionExist(string name, string type){
 	//string pattern: retValue_type1,type2,...
