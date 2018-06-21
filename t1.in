@@ -6,8 +6,18 @@ int fact(int n){
 	return n-1;
 }
 void main(){
+<<<<<<< HEAD
 	int x = f(4);
 	printi(f(7));
 	printi(x);
 	printi(fact(6));
+=======
+	int x = 5+5;
+	int y = 4;
+	int g[5];
+	g[2] = 2;
+	g[1] = 1;
+	g[0] = 0;
+	g[7] = 4;
+>>>>>>> 52a4f6f10dca1c5330bf5f29e691768fc85b179f
 }
