@@ -5,38 +5,38 @@ vector <int> offsets_stack;
 
 int printi = 0;
 extern int yylineno;
-string SymbolTableAliases[TYPES_SIZE]; //TBD: ask roey if he needs aliases in parser/scanner, and if so move to hpp
+string stTypes[TYPES_SIZE]; //TBD: ask roey if he needs aliases in parser/scanner, and if so move to hpp
 
 int __init_stacks() {
 	vector<TEntry> newVec;
 	tables_stack.push_back(newVec);
 	offsets_stack.push_back(0);
 	
-	SymbolTableAliases[typeInt] = "INT";
-	SymbolTableAliases[typeByte] = "BYTE";
-	SymbolTableAliases[typeBool] = "BOOL";
-	SymbolTableAliases[typeVoid] = "VOID";
-	SymbolTableAliases[typeString] = "STRING";
+	stTypes[typeInt] = "INT";
+	stTypes[typeByte] = "BYTE";
+	stTypes[typeBool] = "BOOL";
+	stTypes[typeVoid] = "VOID";
+	stTypes[typeString] = "STRING";
 	
 	//add print declaration to stack
-	TEntry e("string_format", SymbolTableAliases[typeString], offsets_stack.back());
+	TEntry e("string_format", stTypes[typeString], offsets_stack.back());
 	vector<TEntry> newVec2;
 	newVec2.push_back(e);
-	InsertFunction("print", SymbolTableAliases[typeVoid], newVec2);
+	InsertFunction("print", stTypes[typeVoid], newVec2);
 	PopStacks(); //exit scope without printing
 	
 	//add printi int declaration to stack
-	TEntry e2("string_format", SymbolTableAliases[typeInt], offsets_stack.back());
+	TEntry e2("string_format", stTypes[typeInt], offsets_stack.back());
 	vector<TEntry> newVec3;
 	newVec3.push_back(e2);
-	InsertFunction("printi", SymbolTableAliases[typeVoid], newVec3);
+	InsertFunction("printi", stTypes[typeVoid], newVec3);
 	PopStacks(); //exit scope without printing
 	
 	//add printi byte declaration to stack
-	/*TEntry e3("string_format", SymbolTableAliases[typeByte], offsets_stack.back());
+	/*TEntry e3("string_format", stTypes[typeByte], offsets_stack.back());
 	vector<TEntry> newVec4;
 	newVec4.push_back(e3);
-	InsertFunction("printi", SymbolTableAliases[typeVoid], newVec4);
+	InsertFunction("printi", stTypes[typeVoid], newVec4);
 	PopStacks(); //exit scope without printing*/
 }
 
@@ -56,7 +56,7 @@ vector<string> getArgsTypes(TEntry Func) {
 
 int __destroy_stacks() {
 	TEntry* main = findByID("main");
-	if (!main || main->getType().compare(SymbolTableAliases[typeVoid]) != 0 || main->getFuncArgs().size() > 0 || main->getKind() != Func) { //type check
+	if (!main || main->getType().compare(stTypes[typeVoid]) != 0 || main->getFuncArgs().size() > 0 || main->getKind() != Func) { //type check
 		errorMainMissing();
 		PopStacks();
 		exit(0);
@@ -235,7 +235,7 @@ bool parameterFits(TEntry entry, string callType){
 		return ((entry.getType() + "[" + numberToString(entry.getArrSize()) + "]") == callType);
 	}
 	string parameterType = entry.getType();
-	return ((parameterType == callType) || (parameterType == SymbolTableAliases[typeInt] && callType == SymbolTableAliases[typeByte])); //type check
+	return ((parameterType == callType) || (parameterType == stTypes[typeInt] && callType == stTypes[typeByte])); //type check
 }
 
 bool allParametersFit(vector<TEntry> funcEntry, vector<string> callEntry) {
