@@ -5,7 +5,6 @@ errorZeroDiv: .asciiz "Error division by zero
 "
 
 .text
-<<<<<<< HEAD
 
 .globl main
 .ent  main
@@ -18,153 +17,53 @@ syscall
 .end main
 
 
-.globl _f_
-.ent  _f_
-_f_:
-
-move $fp, $sp
-subu $fp, $fp, 4
-li $t0, 5
-move $v0, $t0
-jr $ra
-.end _f_
-
-
 .globl _main_
 .ent  _main_
 _main_:
 
 move $fp, $sp
 subu $fp, $fp, 4
+li $t0, 10
 subu $sp, $sp, 4
 sw $t0, ($sp)
+li $t1, 4
 subu $sp, $sp, 4
 sw $t1, ($sp)
-subu $sp, $sp, 4
+li $t2, 0
+subu $sp, $sp, 20
 sw $t2, ($sp)
-subu $sp, $sp, 4
-sw $t3, ($sp)
-subu $sp, $sp, 4
-sw $t4, ($sp)
-subu $sp, $sp, 4
-sw $t5, ($sp)
+sw $t2, 4($sp)
+sw $t2, 8($sp)
+sw $t2, 12($sp)
+sw $t2, 16($sp)
+li $t3, 4
+li $t4, 0
+bge $t3, 5, labelOutOfRange
+blt $t3, 0, labelOutOfRange
+la , 2
+addu , , $t3
+addu , , $t3
+addu , , $t3
+addu , , $t3
+lw , $t4
+li $t5, 4
+bge $t5, 5, labelOutOfRange
+blt $t5, 0, labelOutOfRange
+la $t6, 2
+addu $t6, $t6, $t5
+addu $t6, $t6, $t5
+addu $t6, $t6, $t5
+addu $t6, $t6, $t5
+lw , $t6
+lw $t6, -4($fp)
+lw $t7, 0($fp)
+beq $t7, 0, labelZeroDiv
+div $t6, $t6, $t7
 subu $sp, $sp, 4
 sw $t6, ($sp)
-subu $sp, $sp, 4
-sw $t7, ($sp)
-subu $sp, $sp, 4
-sw $s0, ($sp)
-subu $sp, $sp, 4
-sw $s1, ($sp)
-subu $sp, $sp, 4
-sw $s2, ($sp)
-subu $sp, $sp, 4
-sw $s3, ($sp)
-subu $sp, $sp, 4
-sw $s4, ($sp)
-subu $sp, $sp, 4
-sw $s5, ($sp)
-subu $sp, $sp, 4
-sw $s6, ($sp)
-subu $sp, $sp, 4
-sw $s7, ($sp)
-subu $sp, $sp, 4
-sw $t8, ($sp)
-subu $sp, $sp, 4
-sw $t9, ($sp)
-subu $sp, $sp, 4
-sw $fp, ($sp)
-subu $sp, $sp, 4
-sw $ra, ($sp)
-jal _f_
-subu $sp, $sp, 4
-sw $v0, ($sp)
-lw $t1, 0($fp)
-subu $sp, $sp, 4
-sw $t0, ($sp)
-subu $sp, $sp, 4
-sw $t1, ($sp)
-subu $sp, $sp, 4
-sw $t2, ($sp)
-subu $sp, $sp, 4
-sw $t3, ($sp)
-subu $sp, $sp, 4
-sw $t4, ($sp)
-subu $sp, $sp, 4
-sw $t5, ($sp)
-subu $sp, $sp, 4
-sw $t6, ($sp)
-subu $sp, $sp, 4
-sw $t7, ($sp)
+li $s0, 2
 subu $sp, $sp, 4
 sw $s0, ($sp)
-subu $sp, $sp, 4
-sw $s1, ($sp)
-subu $sp, $sp, 4
-sw $s2, ($sp)
-subu $sp, $sp, 4
-sw $s3, ($sp)
-subu $sp, $sp, 4
-sw $s4, ($sp)
-subu $sp, $sp, 4
-sw $s5, ($sp)
-subu $sp, $sp, 4
-sw $s6, ($sp)
-subu $sp, $sp, 4
-sw $s7, ($sp)
-subu $sp, $sp, 4
-sw $t8, ($sp)
-subu $sp, $sp, 4
-sw $t9, ($sp)
-subu $sp, $sp, 4
-sw $fp, ($sp)
-subu $sp, $sp, 4
-sw $ra, ($sp)
-subu $sp, $sp, 4
-sw $t1, ($sp)
-jal _printi_
-lw $t1, ($sp)
-addu $sp, $sp, 4
-lw $ra, ($sp)
-addu $sp, $sp, 4
-lw $fp, ($sp)
-addu $sp, $sp, 4
-lw $t9, ($sp)
-addu $sp, $sp, 4
-lw $t8, ($sp)
-addu $sp, $sp, 4
-lw $s7, ($sp)
-addu $sp, $sp, 4
-lw $s6, ($sp)
-addu $sp, $sp, 4
-lw $s5, ($sp)
-addu $sp, $sp, 4
-lw $s4, ($sp)
-addu $sp, $sp, 4
-lw $s3, ($sp)
-addu $sp, $sp, 4
-lw $s2, ($sp)
-addu $sp, $sp, 4
-lw $s1, ($sp)
-addu $sp, $sp, 4
-lw $s0, ($sp)
-addu $sp, $sp, 4
-lw $t7, ($sp)
-addu $sp, $sp, 4
-lw $t6, ($sp)
-addu $sp, $sp, 4
-lw $t5, ($sp)
-addu $sp, $sp, 4
-lw $t4, ($sp)
-addu $sp, $sp, 4
-lw $t3, ($sp)
-addu $sp, $sp, 4
-lw $t2, ($sp)
-addu $sp, $sp, 4
-lw $t1, ($sp)
-addu $sp, $sp, 4
-lw $t0, ($sp)
-addu $sp, $sp, 4
 jr $ra
 .end _main_
 
@@ -195,84 +94,17 @@ jr $ra
 .end _printi_
 
 labelZeroDiv:
-la $t2, errorZeroDiv
+la $s1, errorZeroDiv
 subu $sp, $sp, 4
-sw $t2, ($sp)
+sw $s1, ($sp)
 jal _print_
 li $v0,10
 syscall
 
 labelOutOfRange:
-la $t2, errorOutOfBounds
+la $s1, errorOutOfBounds
 subu $sp, $sp, 4
-sw $t2, ($sp)
+sw $s1, ($sp)
 jal _print_
-=======
-.globl labelZeroDiv
-.ent  labelZeroDiv
-labelZeroDiv:
-la $t0, errorZeroDiv
-subu $sp, $sp, 4
-sw $t0, ($sp)
-jal print
 li $v0,10
 syscall
-jr $ra
-.end labelZeroDiv
-.globl labelOutOfRange
-.ent  labelOutOfRange
-labelOutOfRange:
-la $t0, errorOutOfBounds
-subu $sp, $sp, 4
-sw $t0, ($sp)
-jal print
-li $v0,10
-syscall
-jr $ra
-.end labelOutOfRange
-.globl print
-.ent  print
-print:
-lw $a0,0($sp)
-li $v0,4
-syscall
-jr $ra
-.end print
-.globl main
-.ent  main
-main:
-li $t0, 5
-li $t1, 5
-addu $t0, $t0, $t1
-subu $sp, $sp, 4
-sw $t0, ($sp)
-li $t2, 4
-subu $sp, $sp, 4
-sw $t2, ($sp)
-li $t3, 0
-subu $sp, $sp, 20
-sw $t3, ($sp)
-sw $t3, 4($sp)
-sw $t3, 8($sp)
-sw $t3, 12($sp)
-sw $t3, 16($sp)
-li $t4, 2
-li $t5, 2
-bge $t4, 5, labelOutOfRange
-blt $t4, 0, labelOutOfRange
-li $t6, 1
-li $t7, 1
-bge $t6, 5, labelOutOfRange
-blt $t6, 0, labelOutOfRange
-li $s0, 0
-li $s1, 0
-bge $s0, 5, labelOutOfRange
-blt $s0, 0, labelOutOfRange
-li $s2, 7
-li $s3, 4
-bge $s2, 5, labelOutOfRange
-blt $s2, 0, labelOutOfRange
->>>>>>> 52a4f6f10dca1c5330bf5f29e691768fc85b179f
-li $v0,10
-syscall
-.end main

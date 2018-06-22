@@ -147,17 +147,7 @@ class emitter {
 		
 		//divide rsrc by src and save to rdest
 		int div(string rdest, string rsrc, string src) {
-			//string error_reg = rh.getAvailReg();
-			//li(error_reg, src);
-			int emitted = beq(src, "0", "labelZeroDiv");
-			//rh.returnRegisterToPool(error_reg);
-			
-			//print_error("print", "errorZeroDiv");
-			
-			//string valid_label = "div_ok_" + numberToString(++valid_unique_label);
-			//CodeBuffer::instance().emit(valid_label + ":");
-			//CodeBuffer::instance().bpatch(CodeBuffer::instance().makelist(emitted), valid_label);
-			
+			beq(src, "0", "labelZeroDiv");
 			return action3op("div", rdest, rsrc, src);
 		}
 		
@@ -206,6 +196,7 @@ class emitter {
 			return jump("jal", label);
 		}
 
+		//return from func and restore ra register
 		int jr(){
 			return emit("jr $ra");
 		}
@@ -233,8 +224,13 @@ class emitter {
 			emit("");
 		}
 
+		/// <summary>
+        /// check if index is in array range
+        /// </summary>
+        /// <param name="arr_size">array size</param>
+        /// <param name="idx_reg">register contains the index value</param>
 		int arrayIsInRange(string arr_size, string idx_reg) {
-			int emitted = bge(idx_reg, arr_size, "labelOutOfRange");
+			bge(idx_reg, arr_size, "labelOutOfRange");
 			return blt(idx_reg, "0", "labelOutOfRange");
 		}
 };

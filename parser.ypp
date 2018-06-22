@@ -339,24 +339,13 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																	
 																	e.arrayIsInRange(numberToString(t->getArrSize()), $3->getRegister());
 																	
-																	//if ($6->getKind() != Array) {
-																		string resreg = $1->getRegister();
-																		e.la(resreg, $1->getName());
-																		e.add(resreg, resreg, $3->getRegister());
-																		e.add(resreg, resreg, $3->getRegister());
-																		e.add(resreg, resreg, $3->getRegister());
-																		e.add(resreg, resreg, $3->getRegister());
-																		e.mov(resreg, $6->getRegister());
-																	//} else {
-																		//int j(0);
-																		//for (int i(0); i < $1->getArrSize(); i++) {
-																		//	string resreg = numberToString($1->getRegister());
-																		//	string resreg = numberToString($1->getRegister());
-																		//	e.la(resreg, $1->getName());
-																		//	e.add(resreg, resreg, numberToString(4*$3->getRegister()));
-																		//	e.mov(resreg, numberToString($6->getRegister()));
-																		//}
-																	//}
+																	string resreg = t->getRegister();
+																	e.la(resreg, numberToString(t->getOffset()));
+																	e.add(resreg, resreg, $3->getRegister());
+																	e.add(resreg, resreg, $3->getRegister());
+																	e.add(resreg, resreg, $3->getRegister());
+																	e.add(resreg, resreg, $3->getRegister());
+																	e.lw(resreg, $6->getRegister());
 																}
 		| Call SC
 		| RETURN SC {
@@ -543,12 +532,12 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															}
 		| ID LBRACK Exp RBRACK								{
 															TEntry* t = findByID($1->getName());
-															if(!t){
+															if(!t) {
 																errorUndef(yylineno, $1->getName());
 																PopAllStacks();
 																exit(0);
 															}
-															if($3->getType()!="INT" && $3->getType()!="BYTE" || t->getKind()!=Array){
+															if($3->getType()!="INT" && $3->getType()!="BYTE" || t->getKind()!=Array) {
 																errorMismatch(yylineno); 
 																PopAllStacks();
 																exit(0);
@@ -557,7 +546,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															e.arrayIsInRange(numberToString(t->getArrSize()), $3->getRegister());
 															
 															string resreg = register_handler.getAvailReg();
-															e.la(resreg, $1->getName());
+															e.la(resreg, numberToString(t->getOffset()));
 															e.add(resreg, resreg, $3->getRegister());
 															e.add(resreg, resreg, $3->getRegister());
 															e.add(resreg, resreg, $3->getRegister());
@@ -752,8 +741,8 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 %%
 
 int main() {
-	CodeBuffer::instance().emitData("errorOutOfBounds: .ascii \"Error index out of bounds\n\"");
-	CodeBuffer::instance().emitData("errorZeroDiv: .ascii \"Error division by zero\n\"");
+	CodeBuffer::instance().emitData("errorOutOfBounds: .asciiz \"Error index out of bounds\n\"");
+	CodeBuffer::instance().emitData("errorZeroDiv: .asciiz \"Error division by zero\n\"");
 	
 	//yydebug = 1;
 	__init_stacks();
