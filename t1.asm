@@ -36,34 +36,29 @@ sw $t2, 4($sp)
 sw $t2, 8($sp)
 sw $t2, 12($sp)
 sw $t2, 16($sp)
-li $t3, 4
-li $t4, 0
-bge $t3, 5, labelOutOfRange
-blt $t3, 0, labelOutOfRange
-la , 2
-addu , , $t3
-addu , , $t3
-addu , , $t3
-addu , , $t3
-lw , $t4
-li $t5, 4
-bge $t5, 5, labelOutOfRange
-blt $t5, 0, labelOutOfRange
-la $t6, 2
-addu $t6, $t6, $t5
-addu $t6, $t6, $t5
-addu $t6, $t6, $t5
-addu $t6, $t6, $t5
-lw , $t6
-lw $t6, -4($fp)
-lw $t7, 0($fp)
-beq $t7, 0, labelZeroDiv
-div $t6, $t6, $t7
+li $t2, 2
+bge $t2, 5, labelOutOfRange
+blt $t2, 0, labelOutOfRange
+la $t3, 2($sp)
+subu $t3, $t3, $t2
+subu $t3, $t3, $t2
+subu $t3, $t3, $t2
+subu $t3, $t3, $t2
 subu $sp, $sp, 4
-sw $t6, ($sp)
-li $s0, 2
-subu $sp, $sp, 4
-sw $s0, ($sp)
+sw $t3, ($sp)
+lw $t4, -4($fp)
+lw $t5, -28($fp)
+beq $t5, 0, labelZeroDiv
+div $t4, $t4, $t5
+li $t6, 3
+li $t7, 7
+bge $t7, 5, labelOutOfRange
+blt $t7, 0, labelOutOfRange
+la $s0, 2($sp)
+subu $s0, $s0, $t7
+subu $s0, $s0, $t7
+subu $s0, $s0, $t7
+subu $s0, $s0, $t7
 jr $ra
 .end _main_
 

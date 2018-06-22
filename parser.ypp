@@ -227,6 +227,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																else {
 																	//todo handle false array initialize
 																}
+																register_handler.returnRegisterToPool(reg);
 																}
 		| Type ID LBRACK NUM B RBRACK SC						{
 																if(isIdentifierExists($2->getName())){
@@ -339,13 +340,13 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																	
 																	e.arrayIsInRange(numberToString(t->getArrSize()), $3->getRegister());
 																	
-																	string resreg = t->getRegister();
-																	e.la(resreg, numberToString(t->getOffset()));
-																	e.add(resreg, resreg, $3->getRegister());
-																	e.add(resreg, resreg, $3->getRegister());
-																	e.add(resreg, resreg, $3->getRegister());
-																	e.add(resreg, resreg, $3->getRegister());
-																	e.lw(resreg, $6->getRegister());
+																	//string resreg = t->getRegister();
+																	//e.la(resreg, numberToString(t->getOffset()));
+																	//e.add(resreg, resreg, $3->getRegister());
+																	//e.add(resreg, resreg, $3->getRegister());
+																	//e.add(resreg, resreg, $3->getRegister());
+																	//e.add(resreg, resreg, $3->getRegister());
+																	//e.lw(resreg, $6->getRegister());
 																}
 		| Call SC
 		| RETURN SC {
@@ -530,7 +531,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																$$->setBoolVal($2->getBoolVal());
 															}
 															}
-		| ID LBRACK Exp RBRACK								{
+		| ID LBRACK Exp RBRACK								{//script killer
 															TEntry* t = findByID($1->getName());
 															if(!t) {
 																errorUndef(yylineno, $1->getName());
@@ -546,14 +547,13 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															e.arrayIsInRange(numberToString(t->getArrSize()), $3->getRegister());
 															
 															string resreg = register_handler.getAvailReg();
-															e.la(resreg, numberToString(t->getOffset()));
-															e.add(resreg, resreg, $3->getRegister());
-															e.add(resreg, resreg, $3->getRegister());
-															e.add(resreg, resreg, $3->getRegister());
-															e.add(resreg, resreg, $3->getRegister());
-															e.lw($$->getRegister(), resreg);
-															register_handler.returnRegisterToPool(resreg);
+															//e.la(resreg, numberToString(t->getOffset()) + "($sp)");
+															//e.sub(resreg, resreg, $3->getRegister());
+															//e.sub(resreg, resreg, $3->getRegister());
+															//e.sub(resreg, resreg, $3->getRegister());
+															//e.sub(resreg, resreg, $3->getRegister());
 															
+															$$->setRegister(resreg);
 															$$->setName($1->getName() + "[]");	
 															$$->setType(t->getType());
 															}

@@ -95,6 +95,7 @@ class emitter {
 			lw(reg, "($sp)");
 			add("$sp","$sp","4");
 		}
+		
 		void initArray(string reg, int length){
 			sub("$sp","$sp",numberToString(length*4));
 			sw(reg,"($sp)");
@@ -102,6 +103,7 @@ class emitter {
 				sw(reg,numberToString(i*4) + "($sp)");
 			}
 		}
+		
 		void loadVariable(string rdest, int offset){
 			int real_offset = -4*(offset);
 			lw(rdest,numberToString(real_offset) + "($fp)");
