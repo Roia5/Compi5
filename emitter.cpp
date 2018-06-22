@@ -259,7 +259,7 @@ class emitter {
 			} else if(op=="!="){
 				bufferLine = bne(reg1,reg2);
 			} else {
-				cout << "operation error ifInstruction" << endl;
+				cout << "operation error ifInstruction, op is " << op << endl;
 			}
 			return bufferLine;
 		}

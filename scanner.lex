@@ -49,8 +49,8 @@ break 																		return BREAK;
 \x5B																		return LBRACK;
 \x5D																		return RBRACK;
 \x3D 																		return ASSIGN;
-\x3D\x3D                                                                    { yylval = new VarType("","","=="); return RELOP_EQUAL;}
-\x21\x3D                                                                    { yylval = new VarType("","","!="); return RELOP_EQUAL;}
+\x3D\x3D                                                                    { yylval = new VarType("","","=="); yylval->setOp("=="); return RELOP_EQUAL;}
+\x21\x3D                                                                    { yylval = new VarType("","","!="); yylval->setOp("!="); return RELOP_EQUAL;}
 
 
 

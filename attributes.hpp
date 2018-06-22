@@ -50,7 +50,10 @@ class VarType {
 		this->trueList = trueList;
 	}
 	void setNextList(vector<int> nextList){
-		this->nextList = nextList;
+		if(nextList.size()!=0){
+			this->nextList = nextList;
+		}
+		//maybe else
 	}
 	vector<int> getNextList(){
 		return this->nextList;

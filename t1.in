@@ -1,4 +1,6 @@
 void main(){
-	if (6<5) printi(10);
-	else printi(9);
+	int x = 7;
+	while(true){
+		printi(1);
+	}
 }

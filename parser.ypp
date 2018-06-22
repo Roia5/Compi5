@@ -171,8 +171,13 @@ Statements :		Statement	{$$->setNextList($1->getNextList()); one_statement = tru
 					CodeBuffer::instance().bpatch($1->getNextList(),newLabel);}
 		 Statement {$$->setNextList($3->getNextList()); one_statement = false;}	
 ;
-
-Statement :		LBRACE {StartScope();} Statements {ExitScope(); $$->setNextList($3->getNextList());} RBRACE
+ 
+Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << endl;
+																vector<int> list = $3->getNextList(); 
+																//cout <<"wtf2" << endl;
+																$$->setNextList(list);
+																//cout <<"wtf3" << endl;
+																} RBRACE
 		| Type ID SC											{
 																if(isIdentifierExists($2->getName())){
 																	errorDef(yylineno, $2->getName());
@@ -429,27 +434,35 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); $$->setNextList($3-
 			foundElse = false;
 		}
 		| WHILE {string nextLine = CodeBuffer::instance().genLabel();
-					string while_m1_nextLine = nextLine;} 
-		LPAREN Exp RPAREN 					{ if($3->getType()!="BOOL"){
+					while_m1_nextLine = nextLine;
+						//cout << "ere" << endl;
+					} 
+		LPAREN Exp RPAREN 					{ if($4->getType()!="BOOL"){
+														//cout << "here" << $4->getType() << endl;
 														errorMismatch(yylineno);
 														PopAllStacks();
 														exit(0);
 												}
-												string nextLine = CodeBuffer::instance().genLabel();
-												string while_m2_nextLine = nextLine;
+													//cout << "ere2" << endl;
+												//string nextLine = CodeBuffer::instance().genLabel();
+												//while_m2_nextLine = nextLine;
+												
 												while_stack.push_back(true); StartScope(); } 
-		Statement 																{ while_stack.pop_back(); 
-																				if($3->getType()!="BOOL"){
+		Statement 																{ //cout << "er5e3" << endl;
+																				while_stack.pop_back(); 
+																				
+																				if($4->getType()!="BOOL"){
+																					//cout << "here2" << $4->getType() << endl;
 																					errorMismatch(yylineno); 
 																					PopAllStacks();
 																					exit(0);
 																				}
+																					//cout << "ere3" << endl;
 																				ExitScope();	
-																				CodeBuffer::instance().bpatch($7->getNextList(),while_m1_nextLine);
-												
-												CodeBuffer::instance().bpatch($4->getTrueList(),while_m2_nextLine);
+												//CodeBuffer::instance().bpatch($7->getNextList(),while_m1_nextLine);
+												//CodeBuffer::instance().bpatch($4->getTrueList(),while_m2_nextLine);
 												$$->setNextList($4->getFalseList());
-												CodeBuffer::instance().emit("goto " + while_m1_nextLine);
+												//CodeBuffer::instance().emit("j " + while_m1_nextLine);
 																				}
 		| BREAK SC {
 			if (!while_stack.back()) {
@@ -584,6 +597,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															}
 															$$->setTrueList($2->getTrueList());
 															$$->setFalseList($2->getFalseList());
+															$$->setRegister($2->getRegister());
 															}
 		| ID LBRACK Exp RBRACK								{//script killer
 															TEntry* t = findByID($1->getName());
@@ -600,16 +614,17 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															
 															e.arrayIsInRange(numberToString(t->getArrSize()), $3->getRegister());
 															
-															string resreg = register_handler.getAvailReg();
+															//string resreg = register_handler.getAvailReg();
 															//e.la(resreg, numberToString(t->getOffset()) + "($sp)");
 															//e.sub(resreg, resreg, $3->getRegister());
 															//e.sub(resreg, resreg, $3->getRegister());
 															//e.sub(resreg, resreg, $3->getRegister());
 															//e.sub(resreg, resreg, $3->getRegister());
 															
-															$$->setRegister(resreg);
+															$$->setRegister($3->getRegister());
 															$$->setName($1->getName() + "[]");	
 															$$->setType(t->getType());
+															//register_handler.returnRegisterToPool($3->getRegister());
 															}
 		| Exp BINOP_MULT Exp								{
 															
@@ -809,12 +824,15 @@ int main() {
 
 
 	int ret = e.buildMain();
+
 	vector<int> mainList = CodeBuffer::instance().makelist(ret);
 
 	int status = yyparse();
 
-	string mainLabel = getFunctionLabel("main");
-	CodeBuffer::instance().bpatch(mainList,mainLabel);
+	if(foundMain) {
+		string mainLabel = getFunctionLabel("main");
+		CodeBuffer::instance().bpatch(mainList,mainLabel);
+	}
 
 	e.funcStart("print");
 	emit("lw $a0,0($sp)");
