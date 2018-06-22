@@ -16,7 +16,7 @@ using namespace output;
 //convert to a class and add init functionallity
 //in constructor.
 enum EntryKind { Var, Array, Func };
-enum SymbolTableTypes { typeInt, typeByte, typeBool, typeVoid, typeString, TYPES_SIZE };
+enum stETypes { typeInt, typeByte, typeBool, typeVoid, typeString, TYPES_SIZE };
 //string SymbolTableAliases[TYPES_SIZE];
 
 #define FUNCS_OFFSET 0
