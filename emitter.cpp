@@ -11,12 +11,13 @@ using namespace std;
 class emitter {
 	private:
 		RegisterHandler rh;
+		string endMainLabel;
 		int action3op(string act, string rdest, string rsrc, string src) {
 			return emit(act + " " + rdest + ", " + rsrc + ", " + src);
 		}
 		
-		int condjump(string cond, string rsrc, string src, string label) {
-			return emit(cond + " " + rsrc + ", " + src + ", " + label);
+		int condjump(string cond, string rsrc, string src) {
+			return emit(cond + " " + rsrc + ", " + src + ", ");
 		}
 		
 		int jump(string jorjal, string label) {
@@ -69,6 +70,9 @@ class emitter {
 			}
 
 		}
+		string getEndMainLabel(){
+			return endMainLabel;
+		}
 		int buildMain(){
 			emit("");
 			emit(".globl main");
@@ -81,6 +85,7 @@ class emitter {
 			int ret = emit ("jal ");
 			//popRegister("$ra");
 			//popRegister("$fp");
+			endMainLabel = CodeBuffer::instance().genLabel();
 			emit("li $v0,10"); //terminate program
 			emit("syscall");
 			emit(".end main");
@@ -149,7 +154,7 @@ class emitter {
 		int div(string rdest, string rsrc, string src) {
 			//string error_reg = rh.getAvailReg();
 			//li(error_reg, src);
-			int emitted = beq(src, "0", "labelZeroDiv");
+			emit("beq " + src + ", 0, labelZeroDiv");
 			//rh.returnRegisterToPool(error_reg);
 			
 			//print_error("print", "errorZeroDiv");
@@ -167,33 +172,33 @@ class emitter {
 		}
 		
 		//
-		int beq(string rsrc, string src, string label) {
-			return condjump("beq", rsrc, src, label);
+		int beq(string rsrc, string src) {
+			return condjump("beq", rsrc, src);
 		}
 		
 		//
-		int bne(string rsrc, string src, string label) {
-			return condjump("bne", rsrc, src, label);
+		int bne(string rsrc, string src) {
+			return condjump("bne", rsrc, src);
 		}
 		
 		//
-		int blt(string rsrc, string src, string label) {
-			return condjump("blt", rsrc, src, label);
+		int blt(string rsrc, string src) {
+			return condjump("blt", rsrc, src);
 		}
 		
 		//
-		int ble(string rsrc, string src, string label) {
-			return condjump("ble", rsrc, src, label);
+		int ble(string rsrc, string src) {
+			return condjump("ble", rsrc, src);
 		}
 		
 		//
-		int bgt(string rsrc, string src, string label) {
-			return condjump("bgt", rsrc, src, label);
+		int bgt(string rsrc, string src) {
+			return condjump("bgt", rsrc, src);
 		}
 		
 		//
-		int bge(string rsrc, string src, string label) {
-			return condjump("bge", rsrc, src, label);
+		int bge(string rsrc, string src) {
+			return condjump("bge", rsrc, src);
 		}
 		
 		//jump to label
@@ -201,6 +206,9 @@ class emitter {
 			return jump("j", label);
 		}
 		
+		int gotoEmpty(){
+			return emit("j ");
+		}
 		//jump to label and save pre-jump address to ra register
 		int jal(string label) {
 			return jump("jal", label);
@@ -233,8 +241,27 @@ class emitter {
 			emit("");
 		}
 
+		int ifInstruction(string reg1, string reg2, string op){
+			int bufferLine;
+			if(op == "<"){
+				bufferLine = blt(reg1,reg2);
+			} else if(op==">"){
+				bufferLine = bgt(reg1,reg2);
+			} else if(op=="<="){
+				bufferLine = ble(reg1,reg2);
+			} else if(op==">="){
+				bufferLine = bge(reg1,reg2);
+			} else if(op=="=="){
+				bufferLine = beq(reg1,reg2);
+			} else if(op=="!="){
+				bufferLine = bne(reg1,reg2);
+			} else {
+				cout << "operation error ifInstruction" << endl;
+			}
+			return bufferLine;
+		}
 		int arrayIsInRange(string arr_size, string idx_reg) {
-			int emitted = bge(idx_reg, arr_size, "labelOutOfRange");
-			return blt(idx_reg, "0", "labelOutOfRange");
+			emit("bge " + idx_reg + ", " + arr_size + ", labelOutOfRange");
+			return emit("blt " + idx_reg + ", 0, labelOutOfRange");
 		}
 };

@@ -35,6 +35,9 @@ class VarType {
 		string reg;
 		string op;
 		vector<string> registerList;
+		vector<int> trueList;
+		vector<int> falseList;
+		vector<int> nextList;
 	public:
 		VarType() {}
 		VarType(string varType, string name) : vType(varType), name(name), isNamed(true) {}
@@ -42,6 +45,24 @@ class VarType {
 		VarType(string varType, string name, bool value) : vType(varType), name(name), boolVal(value), isNamed(true) {}
 	void setBoolVal(bool value){
 		this->boolVal = value;
+	}
+	void setTrueList(vector<int> trueList){
+		this->trueList = trueList;
+	}
+	void setNextList(vector<int> nextList){
+		this->nextList = nextList;
+	}
+	vector<int> getNextList(){
+		return this->nextList;
+	}
+	vector<int> getTrueList(){
+		return this->trueList;
+	}
+	void setFalseList(vector<int> falseList){
+		this->falseList = falseList;
+	}
+	vector<int> getFalseList(){
+		return this->falseList;
 	}
 	void setOp(string op){
 		this->op = op;
@@ -212,6 +233,9 @@ bool doesFunctionExist(string, string);
 string numberToString(int);
 
 int emit(string msg);
+
+vector<int> makelist(int item);
+
 #ifndef YYSTYPE
 #define YYSTYPE VarType*
 #endif

@@ -1,13 +1,4 @@
-int f(int y){
-	return y;
-}
-
-int fact(int n){
-	return n-1;
-}
 void main(){
-	int x = f(4);
-	printi(f(7));
-	printi(x);
-	printi(fact(6));
+	if (6<5) printi(10);
+	else printi(9);
 }

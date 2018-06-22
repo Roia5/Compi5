@@ -20,6 +20,14 @@
 	vector<bool> while_stack (false);
 	vector<bool> funcs_stack;
 
+	bool foundElse;
+	string elseLabel;
+	vector<int> elseNextList;
+	string while_m1_nextLine;
+	string while_m2_nextLine;
+	int if_N_nextLine;
+	bool one_statement;
+
 	string returnTypeFound = "return not done";
 	bool foundMain = false;
 
@@ -77,7 +85,10 @@ FuncDecl :		RetType ID LPAREN Formals RPAREN {
 																					}
 																				}
 																				returnTypeFound = "return not done";
-
+																			if(one_statement){
+																				string end_label = e.getEndMainLabel();
+																				CodeBuffer::instance().bpatch($8->getNextList(),end_label);
+																			}
 																			ExitScope();
 																			e.funcEnd($2->getName());
 																			}
@@ -155,11 +166,13 @@ FormalDecl :		Type ID										{$$->setType($1->getType());
 																$$->addArgName($2->getName());}
 ;
 
-Statements :		Statement
-		| Statements Statement
+Statements :		Statement	{$$->setNextList($1->getNextList()); one_statement = true;}
+		| Statements {string newLabel = CodeBuffer::instance().genLabel();
+					CodeBuffer::instance().bpatch($1->getNextList(),newLabel);}
+		 Statement {$$->setNextList($3->getNextList()); one_statement = false;}	
 ;
 
-Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
+Statement :		LBRACE {StartScope();} Statements {ExitScope(); $$->setNextList($3->getNextList());} RBRACE
 		| Type ID SC											{
 																if(isIdentifierExists($2->getName())){
 																	errorDef(yylineno, $2->getName());
@@ -402,12 +415,39 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 				PopAllStacks();
 				exit(0);
 			}
-			StartScope();} Statement {ExitScope();} ElsePart		
-		| WHILE LPAREN Exp RPAREN 					{ if($3->getType()!="BOOL"){
+			StartScope();
+			string newLabel = CodeBuffer::instance().genLabel();
+			CodeBuffer::instance().bpatch($3->getTrueList(),newLabel);
+			
+			} 
+		Statement {ExitScope();	if_N_nextLine = e.gotoEmpty();} 
+		ElsePart {
+
+			if(foundElse){
+				CodeBuffer::instance().bpatch($3->getFalseList(),elseLabel);
+				//string nextLine = CodeBuffer::instance().genLabel();
+
+				vector<int> N_nextlist = makelist(if_N_nextLine);
+				vector<int> temp = CodeBuffer::instance().merge($6->getNextList(),N_nextlist);
+				$$->setNextList(CodeBuffer::instance().merge(temp,elseNextList));
+			}
+			else {
+				$$->setNextList(CodeBuffer::instance().merge($3->getFalseList(),$6->getNextList()));
+				string nextLine = CodeBuffer::instance().genLabel();
+				CodeBuffer::instance().bpatch($3->getFalseList(),nextLine);
+			}
+			foundElse = false;
+		}
+		| WHILE {string nextLine = CodeBuffer::instance().genLabel();
+					string while_m1_nextLine = nextLine;} 
+		LPAREN Exp RPAREN 					{ if($3->getType()!="BOOL"){
 														errorMismatch(yylineno);
 														PopAllStacks();
 														exit(0);
-													} while_stack.push_back(true); StartScope(); } 
+												}
+												string nextLine = CodeBuffer::instance().genLabel();
+												string while_m2_nextLine = nextLine;
+												while_stack.push_back(true); StartScope(); } 
 		Statement 																{ while_stack.pop_back(); 
 																				if($3->getType()!="BOOL"){
 																					errorMismatch(yylineno); 
@@ -415,6 +455,11 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 																					exit(0);
 																				}
 																				ExitScope();	
+																				CodeBuffer::instance().bpatch($7->getNextList(),while_m1_nextLine);
+												
+												CodeBuffer::instance().bpatch($4->getTrueList(),while_m2_nextLine);
+												$$->setNextList($4->getFalseList());
+												CodeBuffer::instance().emit("goto " + while_m1_nextLine);
 																				}
 		| BREAK SC {
 			if (!while_stack.back()) {
@@ -425,7 +470,14 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();} RBRACE
 		}
 ;
 ElsePart :		/*epsilon*/ %prec IF
-		| ELSE {StartScope();} Statement {ExitScope();} %prec ELSE
+		{
+		foundElse = false;}
+		| ELSE {StartScope();
+			foundElse = true;
+			elseLabel = CodeBuffer::instance().genLabel();
+			}
+		Statement {ExitScope();
+		elseNextList = $3->getNextList();} %prec ELSE
 ;
 Call :		ID LPAREN ExpList
 			{ 
@@ -540,6 +592,8 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															else if($2->getType()=="BOOL"){
 																$$->setBoolVal($2->getBoolVal());
 															}
+															$$->setTrueList($2->getTrueList());
+															$$->setFalseList($2->getFalseList());
 															}
 		| ID LBRACK Exp RBRACK								{
 															TEntry* t = findByID($1->getName());
@@ -671,9 +725,15 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															}
 		| STRING											
 		| TRUE 												{$$->setType("BOOL");
-															$$->setBoolVal(true);}
+															$$->setBoolVal(true);
+															int nextLine = e.gotoEmpty();
+															$$->setTrueList(makelist(nextLine));
+															}
 		| FALSE 											{$$->setType("BOOL");
-															$$->setBoolVal(false);}
+															$$->setBoolVal(false);
+															int nextLine = e.gotoEmpty();
+															$$->setFalseList(makelist(nextLine));
+															}
 
 		| NOT Exp 											{if($2->getType() != "BOOL"){
 																errorMismatch(yylineno); 
@@ -682,25 +742,38 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															}	
 															$$->setType("BOOL");
 															$$->setBoolVal(!($2->getBoolVal()));
-															
+															$$->setTrueList($2->getFalseList());
+															$$->setFalseList($2->getTrueList());
 															}
 
-		| Exp AND Exp 										{if($1->getType() != "BOOL" || $3->getType() != "BOOL") {
+		| Exp AND {
+			string nextLine = CodeBuffer::instance().genLabel();
+			CodeBuffer::instance().bpatch($1->getTrueList(),nextLine);
+		}
+		Exp 										{if($1->getType() != "BOOL" || $4->getType() != "BOOL") {
 																errorMismatch(yylineno); 
 																PopAllStacks();
 																exit(0);
 															}	
 															$$->setType("BOOL");
-															$$->setBoolVal($1->getBoolVal() && $3->getBoolVal());
+															$$->setTrueList($4->getTrueList());
+															$$->setFalseList(CodeBuffer::instance()
+																			.merge($1->getFalseList(),$4->getFalseList()));
 															}
 
-		| Exp OR Exp 										{if($1->getType() != "BOOL" || $3->getType() != "BOOL") {
+		| Exp OR {
+			string nextLine = CodeBuffer::instance().genLabel();
+			CodeBuffer::instance().bpatch($1->getFalseList(),nextLine);
+		}
+		Exp 										{if($1->getType() != "BOOL" || $4->getType() != "BOOL") {
 																errorMismatch(yylineno); 
 																PopAllStacks();
 																exit(0);
 															}	
 															$$->setType("BOOL");
-															$$->setBoolVal($1->getBoolVal() || $3->getBoolVal());
+															$$->setTrueList(CodeBuffer::instance()
+																			.merge($1->getTrueList(),$4->getTrueList()));
+															$$->setFalseList($4->getFalseList());
 															}
 
 		| Exp RELOP_NORMAL Exp 								{if(($1->getType() != "INT" && $1->getType() != "BYTE")
@@ -710,22 +783,11 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																exit(0);
 															}	
 															$$->setType("BOOL");
-															int val1 = $1->getIntVal();
-															int val2 = $3->getIntVal();
 															
-															if($2->getOp()=="<"){
-																$$->setBoolVal(val1<val2);
-															}
-															else if($2->getOp()==">"){
-																$$->setBoolVal(val1>val2);
-															}
-															else if($2->getOp()=="<="){
-																$$->setBoolVal(val1<=val2);
-															}
-															else {
-																$$->setBoolVal(val1>=val2);
-															}
-															
+															int nextLine = e.ifInstruction($1->getRegister(), $3->getRegister(), $2->getOp());
+															$$->setTrueList(makelist(nextLine));
+															nextLine = e.gotoEmpty();
+															$$->setFalseList(makelist(nextLine));
 															
 															
 															}
@@ -737,15 +799,11 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																exit(0);
 															}	
 															$$->setType("BOOL");
-															int val1 = $1->getIntVal();
-															int val2 = $3->getIntVal();
-															/*if($2->getOp()=="=="){
-																$$->setBoolVal(val1==val3);
-															}
-															else {
-																$$->setBoolVal(val1!=val3);
-															}*/
-
+															
+															int nextLine = e.ifInstruction($1->getRegister(), $3->getRegister(), $2->getOp());
+															$$->setTrueList(makelist(nextLine));
+															nextLine = e.gotoEmpty();
+															$$->setFalseList(makelist(nextLine));
 															}
 ;
 

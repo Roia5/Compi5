@@ -329,3 +329,7 @@ string numberToString(int number) {
 int emit(string msg){
 	CodeBuffer::instance().emit(msg);
 }
+
+vector<int> makelist(int item){
+	return CodeBuffer::instance().makelist(item);
+}
