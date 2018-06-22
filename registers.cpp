@@ -52,7 +52,7 @@ static int regNameToIndex(string name){
     if (name == "$s7") return 15;
     if (name == "$t8") return 16;
     if (name == "$t9") return 17;
-    cout << "regNameToIndex error" << endl;
+    cout << "regNameToIndex error - wanted name is " << name  << endl;
     return -1;
 }
 

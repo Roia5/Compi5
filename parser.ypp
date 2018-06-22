@@ -200,6 +200,8 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																else {
 																	//todo handle false var initialize
 																}
+																//cout << "1" << endl;
+																register_handler.returnRegisterToPool(reg);
 																}
 		| Type ID ASSIGN Exp SC									{
 																if(isIdentifierExists($2->getName())){
@@ -218,6 +220,8 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																dynamic_cast<TEntry*>($2)->setKind(Var);
 																InsertVar($2->getName(),$1->getType(),$2);
 																e.pushRegister($4->getRegister());
+																//cout << "2" << endl;
+																register_handler.returnRegisterToPool($4->getRegister());
 																}
 		| Type ID LBRACK NUM RBRACK SC							{
 																if(isIdentifierExists($2->getName())){
@@ -245,6 +249,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																else {
 																	//todo handle false array initialize
 																}
+																//cout << "3" << endl;
 																register_handler.returnRegisterToPool(reg);
 																}
 		| Type ID LBRACK NUM B RBRACK SC						{
@@ -318,13 +323,11 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																			PopAllStacks();
 																			exit(0);
 																		}	
-																	}
-																	if(t->getType()=="INT" || t->getType()=="BYTE"){
-																		t->setIntVal($3->getIntVal());
-																	}
-																	else {	//BOOL
-																		t->setBoolVal($3->getBoolVal());
-																	}
+																e.storeVariable($3->getRegister(), t->getOffset());
+																//cout << "4" << endl;
+																register_handler.returnRegisterToPool($3->getRegister());
+																}
+														
 																}
 
 																
@@ -403,6 +406,8 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 				}
 			}
 			e.mov("$v0",$2->getRegister());
+			//cout << "5" << endl;
+			register_handler.returnRegisterToPool($2->getRegister());
 		}
 		| IF  LPAREN Exp RPAREN {
 			if($3->getType()!="BOOL"){
@@ -651,6 +656,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															if($$->getType()=="BYTE"){
 																e.zeroTopBits(reg1);
 															}
+															register_handler.returnRegisterToPool(reg2);
 															}
 
 		| Exp BINOP_ADD Exp									{
@@ -679,6 +685,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															if($$->getType()=="BYTE"){
 																e.zeroTopBits(reg1);
 															}
+															register_handler.returnRegisterToPool(reg2);
 															}
 		| ID												{
 															if(!isIdentifierExists($1->getName())){
@@ -696,12 +703,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																$$->setRegister(register_handler.getAvailReg());
 																e.loadVariable($$->getRegister(), t->getOffset());
 															}
-															/*if(t->getType()=="INT" || t->getType()=="BYTE"){
-																$$->setIntVal(t->getIntVal());
-															}
-															else if(t->getType()=="BOOL"){
-																$$->setBoolVal(t->getBoolVal());
-															}*/
+														
 
 															
 															}
@@ -734,7 +736,6 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															$$->setTrueList(makelist(nextLine));
 															}
 		| FALSE 											{$$->setType("BOOL");
-															$$->setBoolVal(false);
 															int nextLine = e.gotoEmpty();
 															$$->setFalseList(makelist(nextLine));
 															}
@@ -745,9 +746,9 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																exit(0);
 															}	
 															$$->setType("BOOL");
-															$$->setBoolVal(!($2->getBoolVal()));
 															$$->setTrueList($2->getFalseList());
 															$$->setFalseList($2->getTrueList());
+
 															}
 
 		| Exp AND {

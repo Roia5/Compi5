@@ -113,6 +113,10 @@ class emitter {
 			int real_offset = -4*(offset);
 			lw(rdest,numberToString(real_offset) + "($fp)");
 		}
+		void storeVariable(string rsrc, int offset){
+			int real_offset = -4*(offset);
+			sw(rsrc,numberToString(real_offset) + "($fp)");
+		}
 		void zeroTopBits(string reg){
 			emit("sll " + reg + ", " + reg + ", 24");	//shift left 24 bits
 			emit("srl " + reg + ", " + reg + ", 24");	//shift right 24 bits
