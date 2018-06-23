@@ -604,32 +604,32 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															$$->setFalseList($2->getFalseList());
 															$$->setRegister($2->getRegister());
 															}
-		| ID LBRACK Exp RBRACK								{//script killer
-															TEntry* t = findByID($1->getName());
-															if(!t) {
-																errorUndef(yylineno, $1->getName());
-																PopAllStacks();
-																exit(0);
-															}
-															if($3->getType()!="INT" && $3->getType()!="BYTE" || t->getKind()!=Array) {
-																errorMismatch(yylineno); 
-																PopAllStacks();
-																exit(0);
-															}
-															
-															e.arrayIsInRange(numberToString(t->getArrSize()), $3->getRegister());
-															
-															//string resreg = register_handler.getAvailReg();
-															//e.la(resreg, numberToString(t->getOffset()) + "($sp)");
-															//e.sub(resreg, resreg, $3->getRegister());
-															//e.sub(resreg, resreg, $3->getRegister());
-															//e.sub(resreg, resreg, $3->getRegister());
-															//e.sub(resreg, resreg, $3->getRegister());
-															
-															$$->setRegister($3->getRegister());
-															$$->setName($1->getName() + "[]");	
-															$$->setType(t->getType());
-															//register_handler.returnRegisterToPool($3->getRegister());
+		| ID LBRACK Exp RBRACK								{
+																TEntry* t = findByID($1->getName());
+																if(!t) {
+																	errorUndef(yylineno, $1->getName());
+																	PopAllStacks();
+																	exit(0);
+																}
+																if($3->getType()!="INT" && $3->getType()!="BYTE" || t->getKind()!=Array) {
+																	errorMismatch(yylineno); 
+																	PopAllStacks();
+																	exit(0);
+																}
+																
+																e.arrayIsInRange(numberToString(t->getArrSize()), $3->getRegister());
+																
+																string resreg = register_handler.getAvailReg();
+																
+																e.li(resreg, numberToString(t->getOffset()));
+																e.add(resreg, resreg, $3->getRegister());
+																e.mul(resreg, resreg, numberToString(STACK_ENTRY_SIZE));
+																e.sub(resreg, fp_reg, resreg);
+																e.lw(resreg, "(" + resreg + ")");
+																
+																$$->setRegister(resreg);
+																$$->setName($1->getName() + "[]");	
+																$$->setType(t->getType());
 															}
 		| Exp BINOP_MULT Exp								{
 															

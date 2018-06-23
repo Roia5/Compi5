@@ -7,6 +7,9 @@
 #include "registers.cpp"
 
 using namespace std;
+const string fp_reg = "$fp";
+const string sp_reg = "$sp";
+#define STACK_ENTRY_SIZE 4
 
 class emitter {
 	private:
@@ -24,24 +27,11 @@ class emitter {
 			return emit(jorjal + " " + label);
 		}
 		
-		/*void print_error(string fun, string error_address){
-			string error_reg = rh.getAvailReg();
-			la(error_reg, error_address);
-			pushRegister(error_reg);
-			rh.returnRegisterToPool(error_reg);
-			jal(fun);
-			jal("end_of_program");
+		string parent_reg(string reg) {
+			return "(" + reg + ")";
 		}
-		
-		int get_var_offset(string var) {
-			TEntry* evar = findByID(var);
-			//if (!evar) problem...
-			return evar->getOffset();
-		}*/
-		
-		//static int valid_unique_label;
 	public:
-		emitter(RegisterHandler& rh) : rh(rh) {} // valid_unique_label = 0;
+		emitter(RegisterHandler& rh) : rh(rh) {}
 		void onFunctionCall(string name, vector<string> argumentRegs){	//saving all used registers by caller, $fp, $ra, argument registers, then resets pool.
 			//vector<string> usedRegVec = rh.getUsedRegisters();
 			/*for(int i=0;i<usedRegVec.size();i++){
@@ -50,7 +40,7 @@ class emitter {
 			for(int i=0;i<18;i++){
 				pushRegister(regIndexToName(i));
 			}
-			pushRegister("$fp");
+			pushRegister(fp_reg);
 			pushRegister("$ra");
 			for(int i=0;i<argumentRegs.size();i++){
 				pushRegister(argumentRegs[i]);
@@ -64,7 +54,7 @@ class emitter {
 				popRegister(argumentRegs[i]);
 			}
 			popRegister("$ra");
-			popRegister("$fp");
+			popRegister(fp_reg);
 			for(int i=17;i>=0;i--){
 				popRegister(regIndexToName(i));
 			}
@@ -79,12 +69,12 @@ class emitter {
 			emit(".ent  main");
 			emit("main:");
 			emit("");
-			mov("$fp","$sp");
+			mov(fp_reg,sp_reg);
 			//pushRegister("$fp");
 			//pushRegister("$ra");
 			int ret = emit ("jal ");
 			//popRegister("$ra");
-			//popRegister("$fp");
+			//popRegister(fp_reg);
 			endMainLabel = CodeBuffer::instance().genLabel();
 			emit("li $v0,10"); //terminate program
 			emit("syscall");
@@ -93,29 +83,29 @@ class emitter {
 			return ret;
 		}
 		void pushRegister(string reg){
-			sub("$sp","$sp","4");
-			sw(reg,"($sp)");
+			sub(sp_reg,sp_reg, numberToString(STACK_ENTRY_SIZE));
+			sw(reg, parent_reg(sp_reg));
 		}
 		void popRegister(string reg){
-			lw(reg, "($sp)");
-			add("$sp","$sp","4");
+			lw(reg, parent_reg(sp_reg));
+			add(sp_reg,sp_reg, numberToString(STACK_ENTRY_SIZE));
 		}
 		
 		void initArray(string reg, int length){
-			sub("$sp","$sp",numberToString(length*4));
-			sw(reg,"($sp)");
+			sub(sp_reg,sp_reg,numberToString(length*STACK_ENTRY_SIZE));
+			sw(reg, parent_reg(sp_reg));
 			for(int i=1;i<length;i++){
-				sw(reg,numberToString(i*4) + "($sp)");
+				sw(reg,numberToString(i*STACK_ENTRY_SIZE) + parent_reg(sp_reg));
 			}
 		}
 		
 		void loadVariable(string rdest, int offset){
-			int real_offset = -4*(offset);
-			lw(rdest,numberToString(real_offset) + "($fp)");
+			int real_offset = (-1)*STACK_ENTRY_SIZE*offset;
+			lw(rdest,numberToString(real_offset) + parent_reg(fp_reg));
 		}
 		void storeVariable(string rsrc, int offset){
-			int real_offset = -4*(offset);
-			sw(rsrc,numberToString(real_offset) + "($fp)");
+			int real_offset = (-1)*STACK_ENTRY_SIZE*offset;
+			sw(rsrc,numberToString(real_offset) + parent_reg(fp_reg));
 		}
 		void zeroTopBits(string reg){
 			emit("sll " + reg + ", " + reg + ", 24");	//shift left 24 bits
@@ -237,8 +227,8 @@ class emitter {
 			emit(".ent  " + real_name);
 			emit(real_name + ":");
 			emit("");
-        	mov("$fp", "$sp");
-        	sub("$fp","$fp","4");
+        	mov(fp_reg, sp_reg);
+        	sub(fp_reg,fp_reg,numberToString(STACK_ENTRY_SIZE));
 		}
 
 		void funcEnd(string name){
@@ -267,6 +257,7 @@ class emitter {
 			}
 			return bufferLine;
 		}
+		
 		int arrayIsInRange(string arr_size, string idx_reg) {
 			emit("bge " + idx_reg + ", " + arr_size + ", labelOutOfRange");
 			return emit("blt " + idx_reg + ", 0, labelOutOfRange");

@@ -1,6 +1,9 @@
 void main(){
-	int x = 7;
-	while(true){
-		printi(1);
-	}
+	int f = 2;
+	int t = 1;
+	int x = 4;
+	int g[10];
+	x = g[1];
+	int y = 4/x;
+	int r = g[34];
 }
