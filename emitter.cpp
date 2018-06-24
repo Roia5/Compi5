@@ -262,4 +262,24 @@ class emitter {
 			emit("bge " + idx_reg + ", " + arr_size + ", labelOutOfRange");
 			return emit("blt " + idx_reg + ", 0, labelOutOfRange");
 		}
+
+		void booleanRegisterHandle(string newReg, vector<int> trueList, vector<int> falseList){
+			
+			//cout << "boolean allocated register " << newReg << endl;
+			string load_true_label = CodeBuffer::instance().genLabel();
+			li(newReg, "1");
+			vector<int> nextList = makelist(gotoEmpty());
+
+			string load_false_label = CodeBuffer::instance().genLabel();
+			li(newReg, "0");
+			string next_inst_label = CodeBuffer::instance().genLabel();
+
+			CodeBuffer::instance().bpatch(trueList, load_true_label);
+			/*for(int i=0;i<falseList.size();i++){
+				cout << "falseList[i]: " << falseList[i] << endl;
+			}
+			cout << "load_false_label: " << load_false_label << endl;*/
+			CodeBuffer::instance().bpatch(falseList, load_false_label);
+			CodeBuffer::instance().bpatch(nextList, next_inst_label);
+		}
 };
