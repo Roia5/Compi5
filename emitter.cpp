@@ -250,4 +250,40 @@ class emitter {
 			emit("bge " + idx_reg + ", " + arr_size + ", labelOutOfRange");
 			return emit("blt " + idx_reg + ", 0, labelOutOfRange");
 		}
+		
+		void arrayCopy(TEntry* dest, TEntry* src) {
+			if (dest->getType() != src->getType())
+				return; //-1
+			
+			//get regs for arrays
+			string srcreg = rh.getAvailReg();
+			string destreg = rh.getAvailReg();
+			string valreg = rh.getAvailReg();
+			
+			if (!(srcreg.length()) || !(destreg.length()) || !(valreg.length()))
+				return; //-1
+			
+			//init source array
+			li(srcreg, numberToString(src->getOffset()));
+			mul(srcreg, srcreg, numberToString(STACK_ENTRY_SIZE));
+			sub(srcreg, fp_reg, srcreg);
+			
+			//init destination array
+			li(destreg, numberToString(dest->getOffset()));
+			mul(destreg, destreg, numberToString(STACK_ENTRY_SIZE));
+			sub(destreg, fp_reg, destreg);
+			
+			for (int i = 0; i < dest->getArrSize(); i++) {
+				lw(valreg, srcreg);
+				sw(valreg, parent_reg(destreg));
+				sub(srcreg, srcreg, numberToString(STACK_ENTRY_SIZE));
+				sub(destreg, destreg, numberToString(STACK_ENTRY_SIZE));
+			}
+			
+			rh.returnRegisterToPool(srcreg);
+			rh.returnRegisterToPool(destreg);
+			rh.returnRegisterToPool(valreg);
+			
+			return; //0
+		}
 };

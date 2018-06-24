@@ -215,7 +215,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																		PopAllStacks();
 																		exit(0);
 																	}	
-																}
+																}//script killer
 																$2->setType($1->getType());
 																dynamic_cast<TEntry*>($2)->setKind(Var);
 																InsertVar($2->getName(),$1->getType(),$2);
@@ -235,7 +235,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																	errorInvalidArraySize(yylineno,$2->getName()); 
 																	PopAllStacks();
 																	exit(0);
-																}	
+																}
 																string valString = numberToString(number);
 																$2->setType($1->getType() + "[" + valString + "]");
 																dynamic_cast<TEntry*>($2)->setKind(Array);
@@ -247,9 +247,9 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																	e.initArray(reg,$4->getIntVal());
 																}
 																else {
-																	//todo handle false array initialize
+																	//TODO: handle false array initialize
 																}
-																//cout << "3" << endl;
+																
 																register_handler.returnRegisterToPool(reg);
 																}
 		| Type ID LBRACK NUM B RBRACK SC						{
@@ -281,7 +281,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																	PopAllStacks();
 																	exit(0);
 																}
-																if(t->getKind() == Array){
+																if (t->getKind() == Array) {
 																	size_t pos = $3->getName().find("[");
 																	if (pos != std::string::npos){
 																		errorMismatch(yylineno); 
@@ -310,6 +310,8 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																		PopAllStacks();
 																		exit(0);
 																	}
+																	
+																	e.arrayCopy(t, t2);
 																}
 																else if(t->getKind() == Func){
 																		errorUndef(yylineno, $1->getName());
@@ -368,6 +370,8 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																	e.mul(resreg, resreg, numberToString(STACK_ENTRY_SIZE));
 																	e.sub(resreg, fp_reg, resreg);
 																	e.sw($6->getRegister(), "(" + resreg + ")");
+																	
+																	register_handler.returnRegisterToPool(resreg);
 																}
 		| Call SC
 		| RETURN SC {
