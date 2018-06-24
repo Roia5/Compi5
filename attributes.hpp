@@ -32,6 +32,8 @@ class VarType {
 		bool isNamed;
 		int intVal;
 		bool boolVal;
+		string stringVal;
+		string stringLabel;
 		string reg;
 		string op;
 		vector<string> registerList;
@@ -48,6 +50,18 @@ class VarType {
 	}
 	void setTrueList(vector<int> trueList){
 		this->trueList = trueList;
+	}
+	void setStringVal(string val){
+		this->stringVal = val;
+	}
+	void setStringLabel(string label){
+		this->stringLabel = label;
+	}
+	string getStringLabel(){
+		return this->stringLabel;
+	}
+	string getStringVal(){
+		return this->stringVal;
 	}
 	void setNextList(vector<int> nextList){
 		if(nextList.size()!=0){
