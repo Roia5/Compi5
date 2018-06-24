@@ -60,8 +60,7 @@ Funcs :		/*epsilon*/
 ;
 
 FuncDecl :		RetType ID LPAREN Formals RPAREN {
-													
-														e.funcStart($2->getName());
+													e.funcStart($2->getName());
 													
 													
 													string returnType = $1->getType()+"_"+$4->getType();
@@ -506,21 +505,20 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 												while_m2_nextLine = nextLine;
 												
 												while_stack.push_back(true); StartScope(); } 
-		Statement 																{ 
-																				while_stack.pop_back(); 
-																				
-																				if($4->getType()!="BOOL"){
+		Statement 																{
+																					while_stack.pop_back(); 
 																					
-																					errorMismatch(yylineno); 
-																					PopAllStacks();
-																					exit(0);
-																				}
-																					
-																				ExitScope();	
-												CodeBuffer::instance().bpatch($7->getNextList(),while_m1_nextLine);
-												CodeBuffer::instance().bpatch($4->getTrueList(),while_m2_nextLine);
-												$$->setNextList($4->getFalseList());
-												CodeBuffer::instance().emit("j " + while_m1_nextLine);
+																					if($4->getType()!="BOOL"){
+																						errorMismatch(yylineno); 
+																						PopAllStacks();
+																						exit(0);
+																					}
+																						
+																					ExitScope();	
+																					CodeBuffer::instance().bpatch($7->getNextList(),while_m1_nextLine);
+																					CodeBuffer::instance().bpatch($4->getTrueList(),while_m2_nextLine);
+																					$$->setNextList($4->getFalseList());
+																					CodeBuffer::instance().emit("j " + while_m1_nextLine);
 																				}
 		| BREAK SC {
 			if (!while_stack.back()) {
