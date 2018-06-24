@@ -74,6 +74,7 @@ class emitter {
 			//popRegister("$ra");
 			//popRegister(fp_reg);
 			endMainLabel = CodeBuffer::instance().genLabel();
+						//cout << "14 :" << endMainLabel << endl;
 			emit("li $v0,10"); //terminate program
 			emit("syscall");
 			emit(".end main");
@@ -291,12 +292,15 @@ class emitter {
 			
 			//cout << "boolean allocated register " << newReg << endl;
 			string load_true_label = CodeBuffer::instance().genLabel();
+			//cout << "11 :" << load_true_label << endl;
 			li(newReg, "1");
 			vector<int> nextList = makelist(gotoEmpty());
 
 			string load_false_label = CodeBuffer::instance().genLabel();
+			//cout << "12 :" << load_false_label << endl;
 			li(newReg, "0");
 			string next_inst_label = CodeBuffer::instance().genLabel();
+			//cout << "13 :" << next_inst_label << endl;
 
 			CodeBuffer::instance().bpatch(trueList, load_true_label);
 			/*for(int i=0;i<falseList.size();i++){

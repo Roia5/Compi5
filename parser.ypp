@@ -170,6 +170,7 @@ FormalDecl :		Type ID										{$$->setType($1->getType());
 Statements :		Statement	{$$->setNextList($1->getNextList()); one_statement = true;}
 		| Statements {
 					string newLabel = CodeBuffer::instance().genLabel();
+					//cout << "1 :" << newLabel << endl;
 					CodeBuffer::instance().bpatch($1->getNextList(),newLabel);}
 		 Statement {$$->setNextList($3->getNextList()); one_statement = false;}	
 ;
@@ -456,10 +457,11 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 			StartScope();
 			
 			string newLabel = CodeBuffer::instance().genLabel();
+								//cout << "2 :" << newLabel << endl;
 			CodeBuffer::instance().bpatch($3->getTrueList(),newLabel);
 			
 			} 
-		Statement {ExitScope();	if_N_nextLine = e.gotoEmpty();} 
+		Statement {ExitScope();	} 
 		ElsePart {
 
 			if(foundElse){
@@ -467,14 +469,23 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 				//string nextLine = CodeBuffer::instance().genLabel();
 
 				vector<int> N_nextlist = makelist(if_N_nextLine);
-				vector<int> temp = CodeBuffer::instance().merge($6->getNextList(),N_nextlist);
+				vector<int> temp;
+				if($6->getNextList().size()==0){
+					temp = N_nextlist;
+				}
+				else {
+					temp = CodeBuffer::instance().merge($6->getNextList(),N_nextlist);
+				}
+				
 				$$->setNextList(CodeBuffer::instance().merge(temp,elseNextList));
 			}
 			else {
+				
 				$$->setNextList(CodeBuffer::instance().merge($3->getFalseList(),$6->getNextList()));
 				
-				string nextLine = CodeBuffer::instance().genLabel();
-				CodeBuffer::instance().bpatch($3->getFalseList(),nextLine);
+				//string nextLine = CodeBuffer::instance().genLabel();
+				//cout << "nextline :" << nextLine << endl;
+				//CodeBuffer::instance().bpatch($3->getFalseList(),nextLine);
 			}
 			foundElse = false;
 		}
@@ -521,10 +532,11 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 ElsePart :		/*epsilon*/ %prec IF
 		{
 		foundElse = false;}
-		| ELSE {StartScope();
+		| ELSE {if_N_nextLine = e.gotoEmpty(); StartScope();
 			foundElse = true;
 			
 			elseLabel = CodeBuffer::instance().genLabel();
+								//cout << "4 :" << elseLabel << endl;
 			}
 		Statement {ExitScope();
 		elseNextList = $3->getNextList();} %prec ELSE
@@ -847,6 +859,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 		| Exp OR {
 			
 			string nextLine = CodeBuffer::instance().genLabel();
+			//cout << "nextline OR :" << nextLine << endl;
 			CodeBuffer::instance().bpatch($1->getFalseList(),nextLine);
 		}
 		Exp 										{if($1->getType() != "BOOL" || $4->getType() != "BOOL") {
