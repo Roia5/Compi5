@@ -40,7 +40,7 @@ class emitter {
 			}
 			pushRegister(fp_reg);
 			pushRegister("$ra");
-			for(int i=0;i<argumentRegs.size();i++){
+			for(int i = 0; i < argumentRegs.size(); i++){
 				pushRegister(argumentRegs[i]);
 			}
 			//rh.resetPool();
@@ -53,7 +53,7 @@ class emitter {
 			}
 			popRegister("$ra");
 			popRegister(fp_reg);
-			for(int i=17;i>=0;i--){
+			for(int i = NUM_REGS - 1; i >= 0; i--){
 				popRegister(regIndexToName(i));
 			}
 
