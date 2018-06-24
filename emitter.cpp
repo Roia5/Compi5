@@ -90,10 +90,10 @@ class emitter {
 		}
 		
 		void initArray(string reg, int length){
-			sub(sp_reg,sp_reg,numberToString(length*STACK_ENTRY_SIZE));
-			sw(reg, parent_reg(sp_reg));
+			sub(fp_reg,fp_reg,numberToString(length*STACK_ENTRY_SIZE));
+			sw(reg, parent_reg(fp_reg));
 			for(int i=1;i<length;i++){
-				sw(reg,numberToString(i*STACK_ENTRY_SIZE) + parent_reg(sp_reg));
+				sw(reg,numberToString(i*STACK_ENTRY_SIZE) + parent_reg(fp_reg));
 			}
 		}
 		
