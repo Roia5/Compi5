@@ -215,7 +215,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 																		PopAllStacks();
 																		exit(0);
 																	}	
-																}
+																}//script killer
 																$2->setType($1->getType());
 																dynamic_cast<TEntry*>($2)->setKind(Var);
 																InsertVar($2->getName(),$1->getType(),$2);
@@ -247,7 +247,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 																	errorInvalidArraySize(yylineno,$2->getName()); 
 																	PopAllStacks();
 																	exit(0);
-																}	
+																}
 																string valString = numberToString(number);
 																$2->setType($1->getType() + "[" + valString + "]");
 																dynamic_cast<TEntry*>($2)->setKind(Array);
@@ -260,7 +260,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 																	e.initArray(reg,$4->getIntVal());
 																}
 																else {
-																	//todo handle false array initialize
+																	//TODO: handle false array initialize
 																}
 																
 																register_handler.returnRegisterToPool(reg);
@@ -295,7 +295,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 																	PopAllStacks();
 																	exit(0);
 																}
-																if(t->getKind() == Array){
+																if (t->getKind() == Array) {
 																	size_t pos = $3->getName().find("[");
 																	if (pos != std::string::npos){
 																		errorMismatch(yylineno); 
@@ -324,6 +324,8 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 																		PopAllStacks();
 																		exit(0);
 																	}
+																	
+																	e.arrayCopy(t, t2);
 																}
 																else if(t->getKind() == Func){
 																		errorUndef(yylineno, $1->getName());
@@ -392,6 +394,8 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 																	e.mul(resreg, resreg, numberToString(STACK_ENTRY_SIZE));
 																	e.sub(resreg, fp_reg, resreg);
 																	e.sw($6->getRegister(), "(" + resreg + ")");
+																	
+																	register_handler.returnRegisterToPool(resreg);
 																}
 		| Call SC
 		| RETURN SC {
@@ -650,7 +654,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															
 															
 															}
-		| ID LBRACK Exp RBRACK								{//script killer
+		| ID LBRACK Exp RBRACK								{
 															TEntry* t = findByID($1->getName());
 															if(!t) {
 																errorUndef(yylineno, $1->getName());
@@ -664,15 +668,16 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															}
 															
 															e.arrayIsInRange(numberToString(t->getArrSize()), $3->getRegister());
-															
-															//string resreg = register_handler.getAvailReg();
-															//e.la(resreg, numberToString(t->getOffset()) + "($sp)");
-															//e.sub(resreg, resreg, $3->getRegister());
-															//e.sub(resreg, resreg, $3->getRegister());
-															//e.sub(resreg, resreg, $3->getRegister());
-															//e.sub(resreg, resreg, $3->getRegister());
-															
-															$$->setRegister($3->getRegister());
+																
+															string resreg = register_handler.getAvailReg();
+																
+															e.li(resreg, numberToString(t->getOffset()));
+															e.add(resreg, resreg, $3->getRegister());
+															e.mul(resreg, resreg, numberToString(STACK_ENTRY_SIZE));
+															e.sub(resreg, fp_reg, resreg);
+															e.lw(resreg, "(" + resreg + ")");
+																
+															$$->setRegister(resreg);
 															$$->setName($1->getName() + "[]");	
 															$$->setType(t->getType());
 															//register_handler.returnRegisterToPool($3->getRegister());
