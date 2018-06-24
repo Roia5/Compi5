@@ -1,13 +1,10 @@
-void main(){
-	int a[2];
-	
-	a[0] = 1;
-	a[1] = 2;
-	int arr[2];
-	
-	printi(arr[0]);
-	printi(arr[1]);
-	arr = a;
-	printi(arr[0]);
-	printi(arr[1]);
+int fun(){
+	int x[2];
+	x[1] = 2;
+	return x[1]; //it is int
+}
+
+void main() {
+	int y = fun();
+	printi(y);
 }
