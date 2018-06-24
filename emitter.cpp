@@ -24,8 +24,8 @@ class emitter {
 		int jump(string jorjal, string label) {
 			return emit(jorjal + " " + label);
 		}
-		
-		string parent_reg(string reg) {
+
+		string parent_reg(const string reg) {
 			return "(" + reg + ")";
 		}
 	public:
@@ -35,7 +35,7 @@ class emitter {
 			/*for(int i=0;i<usedRegVec.size();i++){
 				pushRegister(usedRegVec[i]);
 			}*/
-			for(int i=0;i<18;i++){
+			for (int i = 0; i < NUM_REGS; i++) {
 				pushRegister(regIndexToName(i));
 			}
 			pushRegister(fp_reg);
