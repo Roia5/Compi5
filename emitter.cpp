@@ -146,17 +146,7 @@ class emitter {
 		
 		//divide rsrc by src and save to rdest
 		int div(string rdest, string rsrc, string src) {
-			//string error_reg = rh.getAvailReg();
-			//li(error_reg, src);
 			emit("beq " + src + ", 0, labelZeroDiv");
-			//rh.returnRegisterToPool(error_reg);
-			
-			//print_error("print", "errorZeroDiv");
-			
-			//string valid_label = "div_ok_" + numberToString(++valid_unique_label);
-			//CodeBuffer::instance().emit(valid_label + ":");
-			//CodeBuffer::instance().bpatch(CodeBuffer::instance().makelist(emitted), valid_label);
-			
 			return action3op("div", rdest, rsrc, src);
 		}
 		
