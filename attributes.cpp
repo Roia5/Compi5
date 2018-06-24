@@ -348,3 +348,169 @@ vector<int> merge(const vector<int> &l1,const vector<int> &l2){
 	if(same) return l1;
 	return CodeBuffer::instance().merge(l1,l2);
 }
+
+////////////////////////////////////////////VarType////////////////////////////////////////////
+void VarType::setBoolVal(bool value){
+	this->boolVal = value;
+}
+
+void VarType::setTrueList(vector<int> trueList){
+	this->trueList = trueList;
+}
+
+void VarType::setStringVal(string val){
+	this->stringVal = val;
+}
+
+void VarType::setStringLabel(string label){
+	this->stringLabel = label;
+}
+
+string VarType::getStringLabel(){
+	return this->stringLabel;
+}
+
+string VarType::getStringVal(){
+	return this->stringVal;
+}
+
+void VarType::setNextList(vector<int> nextList){
+	if(nextList.size()!=0){
+		this->nextList = nextList;
+	}
+	//maybe else
+}
+
+vector<int> VarType::getNextList(){
+	return this->nextList;
+}
+
+
+vector<int> VarType::getTrueList(){
+	return this->trueList;
+}
+
+void VarType::setFalseList(vector<int> falseList){
+	this->falseList = falseList;
+}
+
+vector<int> VarType::getFalseList(){
+	return this->falseList;
+}
+
+void VarType::setOp(string op){
+	this->op = op;
+}
+
+bool VarType::getBoolVal(){
+	return this->boolVal;
+}
+
+void VarType::addRegisterToList(string reg){
+	registerList.push_back(reg);
+}
+
+vector<string> VarType::getRegisterList(){
+	return this->registerList;
+}
+
+void VarType::setRegister(string reg){
+	this->reg = reg;
+}
+
+string VarType::getRegister(){
+	return this->reg;
+}
+
+void VarType::addArgName(string name){
+	argNames.push_back(name);
+}
+
+string VarType::getOp(){
+	return this->op;
+}
+
+void VarType::setIntVal(int value){
+	this->intVal = value;
+}
+
+int VarType::getIntVal(){
+	return this->intVal;
+}
+
+bool VarType::getIsNamed(){
+	return this->isNamed;
+}
+
+void VarType::setIsNamed(){
+	this->isNamed = true;
+}
+
+vector<string> VarType::getArgNames(){
+	return this->argNames;
+}
+
+void VarType::setArgNames(vector<string> vec){
+	this->argNames = vec;
+}
+
+void VarType::setType(string new_type){
+	this->vType = new_type;
+}
+
+string VarType::getType() {
+	return this->vType;
+}
+
+string VarType::getName(){
+	return this->name;
+}
+
+void VarType::setName(string new_name) {
+	name = new_name;
+	isNamed = true;
+}
+
+void VarType::addEntryKind(EntryKind kind){
+	entryKinds.push_back(kind);
+}
+
+vector<EntryKind> VarType::getEntryKinds(){
+	return this->entryKinds;
+}
+
+void VarType::setEntryKinds(vector<EntryKind> vec){
+	this->entryKinds = vec;
+}
+
+////////////////////////////////////////////TEntry////////////////////////////////////////////
+string TEntry::getLabel() {
+	return this->label;
+}
+void TEntry::setOffset(int offset) {
+	idOffset = offset;
+}
+
+int TEntry::getOffset() {
+	return idOffset;
+}
+
+EntryKind TEntry::getKind() {
+	return kind;
+}
+
+void TEntry::setKind(EntryKind kind){
+	this->kind = kind;
+}
+
+int TEntry::getArrSize() {
+	return arrSize;
+}
+
+void TEntry::setArrSize(int size){
+	this->arrSize = size;
+}
+
+vector<TEntry> TEntry::getFuncArgs() {
+	return this->funcArgs;
+}

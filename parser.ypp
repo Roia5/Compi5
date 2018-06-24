@@ -25,8 +25,8 @@ vector<int> ifExitList;
 	bool foundElse;
 	string elseLabel;
 	vector<int> elseNextList;
-	string while_m1_nextLine;
-	string while_m2_nextLine;
+	string while_start_nextLine;
+	string while_true_nextLine;
 	int if_N_nextLine;
 	bool one_statement;
 string returnLabel;
@@ -485,37 +485,47 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 			}
 			foundElse = false;
 		}
-		| WHILE {
-			string nextLine = CodeBuffer::instance().genLabel();
-					while_m1_nextLine = nextLine;
-					
-					} 
-		LPAREN Exp RPAREN 					{ if($4->getType()!="BOOL"){
-														
-														errorMismatch(yylineno);
-														PopAllStacks();
-														exit(0);
-												}
+		
+		
+		| WHILE 
+				{
+					while_start_nextLine = CodeBuffer::instance().genLabel();
+				} 
+				LPAREN Exp RPAREN 					
+				{ 
+					if($4->getType()!="BOOL"){
+						
+						errorMismatch(yylineno);
+						PopAllStacks();
+						exit(0);
+					}
 													
-												string nextLine = CodeBuffer::instance().genLabel();
-												while_m2_nextLine = nextLine;
-												
-												while_stack.push_back(true); StartScope(); } 
-		Statement 																{
-																					while_stack.pop_back(); 
-																					
-																					if($4->getType()!="BOOL"){
-																						errorMismatch(yylineno); 
-																						PopAllStacks();
-																						exit(0);
-																					}
-																						
-																					ExitScope();	
-																					CodeBuffer::instance().bpatch($7->getNextList(),while_m1_nextLine);
-																					CodeBuffer::instance().bpatch($4->getTrueList(),while_m2_nextLine);
-																					$$->setNextList($4->getFalseList());
-																					CodeBuffer::instance().emit("j " + while_m1_nextLine);
-																				}
+					while_true_nextLine = CodeBuffer::instance().genLabel();
+					
+					while_stack.push_back(true); StartScope();
+				} 
+				Statement
+				{
+					while_stack.pop_back(); 
+					
+					if($4->getType()!="BOOL"){
+						errorMismatch(yylineno); 
+						PopAllStacks();
+						exit(0);
+					}
+						
+					ExitScope();
+					CodeBuffer::instance().emit("j " + while_start_nextLine);
+					CodeBuffer::instance().bpatch($4->getTrueList(),while_true_nextLine);
+					
+					string while_end_nextLine = CodeBuffer::instance().genLabel();
+					CodeBuffer::instance().bpatch($4->getFalseList(),while_end_nextLine);
+					CodeBuffer::instance().bpatch($7->getNextList(),while_start_nextLine);
+					
+					//$$->setNextList($4->getFalseList());
+				}
+				
+				
 		| BREAK SC {
 			if (!while_stack.back()) {
 				errorUnexpectedBreak(yylineno);
@@ -944,15 +954,15 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 
 %%
 
+const string outOfBounds_errMsg = "outOfBounds_errMsg";
+const string ZeroDiv_errMsg = "ZeroDiv_errMsg";
+	
 int main() {
-	CodeBuffer::instance().emitData("errorOutOfBounds: .asciiz \"Error index out of bounds\n\"");
-	CodeBuffer::instance().emitData("errorZeroDiv: .asciiz \"Error division by zero\n\"");
+	CodeBuffer::instance().emitData(outOfBounds_errMsg + ": .asciiz \"Error index out of bounds\n\"");
+	CodeBuffer::instance().emitData(ZeroDiv_errMsg + ": .asciiz \"Error division by zero\n\"");
 	
 	//yydebug = 1;
 	__init_stacks();
-	/// print imp.
-
-
 
 	int ret = e.buildMain();
 
@@ -965,6 +975,7 @@ int main() {
 		CodeBuffer::instance().bpatch(mainList,mainLabel);
 	}
 
+	/// print imp.
 	e.funcStart("print");
 	emit("lw $a0,0($sp)");
 	emit("li $v0,4");
@@ -978,9 +989,9 @@ int main() {
 	e.funcEnd("printi");
 
 	/// div by zero error fun
-	emit("labelZeroDiv:");
+	emit(labelZeroDiv + ":");
 	string error_reg = register_handler.getAvailReg();
-	e.la(error_reg, "errorZeroDiv");
+	e.la(error_reg, ZeroDiv_errMsg);
 	e.pushRegister(error_reg);
 	register_handler.returnRegisterToPool(error_reg);
 	e.jal("_print_");
@@ -989,9 +1000,9 @@ int main() {
 	emit("");
 
 	/// index out of array range error fun
-	emit("labelOutOfRange:");
+	emit(labelOutOfRange + ":");
 	error_reg = register_handler.getAvailReg();
-	e.la(error_reg, "errorOutOfBounds");
+	e.la(error_reg, outOfBounds_errMsg);
 	e.pushRegister(error_reg);
 	register_handler.returnRegisterToPool(error_reg);
 	e.jal("_print_");

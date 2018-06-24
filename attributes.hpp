@@ -45,106 +45,71 @@ class VarType {
 		VarType(string varType, string name) : vType(varType), name(name), isNamed(true) {}
 		VarType(string varType, string name, int value) : vType(varType), name(name), intVal(value), isNamed(true) {}
 		VarType(string varType, string name, bool value) : vType(varType), name(name), boolVal(value), isNamed(true) {}
-	void setBoolVal(bool value){
-		this->boolVal = value;
-	}
-	void setTrueList(vector<int> trueList){
-		this->trueList = trueList;
-	}
-	void setStringVal(string val){
-		this->stringVal = val;
-	}
-	void setStringLabel(string label){
-		this->stringLabel = label;
-	}
-	string getStringLabel(){
-		return this->stringLabel;
-	}
-	string getStringVal(){
-		return this->stringVal;
-	}
-	void setNextList(vector<int> nextList){
-		if(nextList.size()!=0){
-			this->nextList = nextList;
-		}
-		//maybe else
-	}
-	vector<int> getNextList(){
-		return this->nextList;
-	}
-	vector<int> getTrueList(){
-		return this->trueList;
-	}
-	void setFalseList(vector<int> falseList){
-		this->falseList = falseList;
-	}
-	vector<int> getFalseList(){
-		return this->falseList;
-	}
-	void setOp(string op){
-		this->op = op;
-	}
-	bool getBoolVal(){
-		return this->boolVal;
-	}
-	void addRegisterToList(string reg){
-		registerList.push_back(reg);
-	}
-	vector<string> getRegisterList(){
-		return this->registerList;
-	}
-	void setRegister(string reg){
-		this->reg = reg;
-	}
-	string getRegister(){
-		return this->reg;
-	}
-	void addArgName(string name){
-		argNames.push_back(name);
-	}
-	string getOp(){
-		return this->op;
-	}
-	void setIntVal(int value){
-		this->intVal = value;
-	}
-	int getIntVal(){
-		return this->intVal;
-	}
-	bool getIsNamed(){
-		return this->isNamed;
-	}
-	void setIsNamed(){
-		this->isNamed = true;
-	}
-	vector<string> getArgNames(){
-		return this->argNames;
-	}
-	void setArgNames(vector<string> vec){
-		this->argNames = vec;
-	}
-	void setType(string new_type){
-		this->vType = new_type;
-	}
-	string getType(){
-		return this->vType;
-	}
-	string getName(){
-		return this->name;
-	}
-	void setName(string new_name) {
-		name = new_name;
-		isNamed = true;
-	}
-	void addEntryKind(EntryKind kind){
-		entryKinds.push_back(kind);
-	}
-	vector<EntryKind> getEntryKinds(){
-		return this->entryKinds;
-	}
-	void setEntryKinds(vector<EntryKind> vec){
-		this->entryKinds = vec;
-	}
+		
+	void setBoolVal(bool value);
+	
+	void setTrueList(vector<int> trueList);
+	
+	void setStringVal(string val);
+	
+	void setStringLabel(string label);
+	
+	string getStringLabel();
+	
+	string getStringVal();
+	
+	void setNextList(vector<int> nextList);
+	
+	vector<int> getNextList();
+	
+	vector<int> getTrueList();
+	
+	void setFalseList(vector<int> falseList);
+	
+	vector<int> getFalseList();
+	
+	void setOp(string op);
+	
+	bool getBoolVal();
+	
+	void addRegisterToList(string reg);
+	
+	vector<string> getRegisterList();
+	
+	void setRegister(string reg);
+	
+	string getRegister();
+	
+	void addArgName(string name);
+	
+	string getOp();
+	
+	void setIntVal(int value);
+	
+	int getIntVal();
+	
+	bool getIsNamed();
+	
+	void setIsNamed();
+	
+	vector<string> getArgNames();
+	
+	void setArgNames(vector<string> vec);
+	
+	void setType(string new_type);
+	
+	string getType();
+	
+	string getName();
+	
+	void setName(string new_name);
+	
+	void addEntryKind(EntryKind kind);
+	
+	vector<EntryKind> getEntryKinds();
+	
+	void setEntryKinds(vector<EntryKind> vec);
+	
 	virtual ~VarType() {}
 };
 
@@ -175,36 +140,21 @@ class TEntry : public VarType{
 		TEntry(string Name, string RetType, vector<TEntry> FuncArgs, string label) : VarType(RetType,Name), label(label), 
 									kind(Func), funcArgs(FuncArgs) {} //function TBD: what to do with offset
 
-		string getLabel(){
-			return this->label;
-		}
-		void setOffset(int offset) {
-			idOffset = offset;
-		}
+		string getLabel();
 		
-		int getOffset() {
-			return idOffset;
-		}
+		void setOffset(int offset);
 		
-		EntryKind getKind() {
-			return kind;
-		}
+		int getOffset();
+		
+		EntryKind getKind();
 
-		void setKind(EntryKind kind){
-			this->kind = kind;
-		}
+		void setKind(EntryKind kind);
 		
-		int getArrSize() {
-			return arrSize;
-		}
+		int getArrSize();
 
-		void setArrSize(int size){
-			this->arrSize = size;
-		}
+		void setArrSize(int size);
 		
-		vector<TEntry> getFuncArgs() {
-			return this->funcArgs;
-		}
+		vector<TEntry> getFuncArgs();
 };
 
 int __init_stacks();

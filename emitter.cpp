@@ -7,7 +7,11 @@
 #include "registers.cpp"
 
 using namespace std;
+
 #define STACK_ENTRY_SIZE 4
+
+const string labelZeroDiv = "labelZeroDiv";
+const string labelOutOfRange = "labelOutOfRange";
 
 class emitter {
 	private:
@@ -147,7 +151,7 @@ class emitter {
 		
 		//divide rsrc by src and save to rdest
 		int div(string rdest, string rsrc, string src) {
-			emit("beq " + src + ", 0, labelZeroDiv");
+			emit("beq " + src + ", 0, " + labelZeroDiv);
 			return action3op("div", rdest, rsrc, src);
 		}
 		
@@ -248,8 +252,8 @@ class emitter {
 		}
 		
 		int arrayIsInRange(string arr_size, string idx_reg) {
-			emit("bge " + idx_reg + ", " + arr_size + ", labelOutOfRange");
-			return emit("blt " + idx_reg + ", 0, labelOutOfRange");
+			emit("bge " + idx_reg + ", " + arr_size + ", " + labelOutOfRange);
+			return emit("blt " + idx_reg + ", 0, " + labelOutOfRange);
 		}
 		
 		void arrayCopy(TEntry* dest, TEntry* src) {
