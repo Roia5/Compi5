@@ -104,6 +104,7 @@ class emitter {
 		void storeVariable(string rsrc, int offset){
 			int real_offset = (-1)*STACK_ENTRY_SIZE*offset;
 			sw(rsrc,numberToString(real_offset) + parent_reg(fp_reg));
+			sub(sp_reg,sp_reg, numberToString(STACK_ENTRY_SIZE));
 		}
 		void zeroTopBits(string reg){
 			emit("sll " + reg + ", " + reg + ", 24");	//shift left 24 bits

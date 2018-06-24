@@ -546,10 +546,13 @@ Call :		ID LPAREN ExpList
 				e.onFunctionCall($1->getName(),argument_list);
 				returnLabel = CodeBuffer::instance().genLabel();
 				old3 = $3->getType();
-			} RPAREN						{e.onFunctionReturn(argument_list);
-													for(int i=0;i<argument_list.size();i++){
+			} RPAREN						{				
+															e.onFunctionReturn(argument_list);
+															for(int i=0;i<argument_list.size();i++){
 																register_handler.returnRegisterToPool(argument_list[i]);
+																
 															}
+													
 															
 															TEntry* t;
 															
