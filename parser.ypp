@@ -20,6 +20,8 @@
 	vector<bool> while_stack (false);
 	vector<bool> funcs_stack;
 
+	vector<int> ifFalseList;
+vector<int> ifExitList;
 	bool foundElse;
 	string elseLabel;
 	vector<int> elseNextList;
@@ -27,7 +29,11 @@
 	string while_m2_nextLine;
 	int if_N_nextLine;
 	bool one_statement;
+string returnLabel;
 
+	vector<string> argument_list;
+	string expListReg;
+	string old3;
 	int inputCount = 0;
 	string returnTypeFound = "return not done";
 	bool foundMain = false;
@@ -88,10 +94,10 @@ FuncDecl :		RetType ID LPAREN Formals RPAREN {
 																					}
 																				}
 																				returnTypeFound = "return not done";
-																			if(one_statement){
-																				string end_label = e.getEndMainLabel();
-																				CodeBuffer::instance().bpatch($8->getNextList(),end_label);
-																			}
+																			/*if(one_statement){
+																				//string end_label = e.getEndMainLabel();
+																				CodeBuffer::instance().bpatch($8->getNextList(),returnLabel);
+																			}*/
 																			ExitScope();
 																			e.funcEnd($2->getName());
 																			}
@@ -458,9 +464,8 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 				exit(0);
 			}
 			StartScope();
-			
+			ifFalseList = $3->getFalseList();
 			string newLabel = CodeBuffer::instance().genLabel();
-								//cout << "2 :" << newLabel << endl;
 			CodeBuffer::instance().bpatch($3->getTrueList(),newLabel);
 			
 			} 
@@ -468,27 +473,15 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 		ElsePart {
 
 			if(foundElse){
-				CodeBuffer::instance().bpatch($3->getFalseList(),elseLabel);
-				//string nextLine = CodeBuffer::instance().genLabel();
-
-				vector<int> N_nextlist = makelist(if_N_nextLine);
-				vector<int> temp;
-				if($6->getNextList().size()==0){
-					temp = N_nextlist;
-				}
-				else {
-					temp = merge($6->getNextList(),N_nextlist);
-				}
-				
-				$$->setNextList(merge(temp,elseNextList));
+				string lab = CodeBuffer::instance().genLabel();
+				CodeBuffer::instance().bpatch(ifExitList,lab);
 			}
 			else {
-				
-				$$->setNextList(merge($3->getFalseList(),$6->getNextList()));
-				
-				//string nextLine = CodeBuffer::instance().genLabel();
+				//$$->setNextList(merge($3->getFalseList(),$6->getNextList()));
+				//$3->getFalseList()
+				string nextLine = CodeBuffer::instance().genLabel();
 				//cout << "nextline :" << nextLine << endl;
-				//CodeBuffer::instance().bpatch($3->getFalseList(),nextLine);
+				CodeBuffer::instance().bpatch($3->getFalseList(),nextLine);
 			}
 			foundElse = false;
 		}
@@ -534,20 +527,32 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 ElsePart :		/*epsilon*/ %prec IF
 		{
 		foundElse = false;}
-		| ELSE {if_N_nextLine = e.gotoEmpty(); StartScope();
+		| ELSE {
+		 StartScope();
 			foundElse = true;
-			
+			int line = e.gotoEmpty();
+			ifExitList = makelist(line);
+
 			elseLabel = CodeBuffer::instance().genLabel();
-								//cout << "4 :" << elseLabel << endl;
+			CodeBuffer::instance().bpatch(ifFalseList,elseLabel);
+								
 			}
 		Statement {ExitScope();
 		elseNextList = $3->getNextList();} %prec ELSE
 ;
 Call :		ID LPAREN ExpList
 			{ 
-				e.onFunctionCall($1->getName(),$3->getRegisterList());
-			} RPAREN						{e.onFunctionReturn($3->getRegisterList()); TEntry* t;
-															string old3 = $3->getType();
+				argument_list = $3->getRegisterList();
+				e.onFunctionCall($1->getName(),argument_list);
+				returnLabel = CodeBuffer::instance().genLabel();
+				old3 = $3->getType();
+			} RPAREN						{e.onFunctionReturn(argument_list);
+													for(int i=0;i<argument_list.size();i++){
+																register_handler.returnRegisterToPool(argument_list[i]);
+															}
+															
+															TEntry* t;
+															
 															if($1->getName()=="print"){
 																$$->setType("VOID");
 																if($3->getType()!="STRING"){
@@ -600,6 +605,7 @@ Call :		ID LPAREN ExpList
 		| ID LPAREN { 
 				vector<string> emptyVec;
 				e.onFunctionCall($1->getName(),emptyVec);
+				returnLabel = CodeBuffer::instance().genLabel();
 			} RPAREN									{vector<string> emptyVec;
 				e.onFunctionReturn(emptyVec); 
 															
@@ -650,10 +656,20 @@ ExpList :		Exp											{
 															}
 															
 															}
-		| Exp COMMA ExpList									{
-															$$->setType($1->getType() + "," + $3->getType());
-															vector<string> list = $3->getRegisterList();
-															$$->addRegisterToList($1->getRegister());
+		| Exp COMMA {										if($1->getType()=="BOOL"){
+																//cout << "$1->getType() " << $1->getType() << endl;
+																expListReg = register_handler.getAvailReg();
+																e.booleanRegisterHandle(expListReg, $1->getTrueList(), $1->getFalseList());
+																
+															}
+															else {
+																expListReg = $1->getRegister();
+															}
+															}
+			ExpList											{
+															$$->addRegisterToList(expListReg);
+															$$->setType($1->getType() + "," + $4->getType());
+															vector<string> list = $4->getRegisterList();
 															for(int i=0;i<list.size();i++){
 																$$->addRegisterToList(list[i]);
 															}
@@ -768,18 +784,17 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																}
 															$$->setName($1->getName());
 															TEntry* t = findByID($1->getName());
+															string reg = register_handler.getAvailReg();
+															e.loadVariable(reg,t->getOffset());
 															if(t->getKind() == Array){
 																$$->setType(t->getType() + "[" + numberToString(t->getArrSize()) + "]"); 
 															}
 															else {
 																$$->setType(t->getType());
 																if(t->getType()!= "BOOL"){
-																	$$->setRegister(register_handler.getAvailReg());
-																	
-																	e.loadVariable($$->getRegister(), t->getOffset());
+																	$$->setRegister(reg);
 																}
 																else {
-																	string reg = register_handler.getAvailReg();
 																	int line = e.bne(reg, "0");
 																	$$->setTrueList(makelist(line));
 																	int nextLine = e.gotoEmpty();
@@ -789,8 +804,6 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																
 															}
 														
-
-															
 															}
 		| Call												{$$->setType($1->getType());
 															string reg = register_handler.getAvailReg();

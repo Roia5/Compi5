@@ -56,7 +56,6 @@ class emitter {
 			for(int i = NUM_REGS - 1; i >= 0; i--){
 				popRegister(regIndexToName(i));
 			}
-
 		}
 		string getEndMainLabel(){
 			return endMainLabel;
