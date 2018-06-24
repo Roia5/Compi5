@@ -32,6 +32,9 @@
 	string returnTypeFound = "return not done";
 	bool foundMain = false;
 
+	vector<int> oldOrTrueList;
+	vector<int> oldAndFalseList;
+
 	RegisterHandler register_handler;
 	emitter e(register_handler);
 	#ifndef YYSTYPE
@@ -474,14 +477,14 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 					temp = N_nextlist;
 				}
 				else {
-					temp = CodeBuffer::instance().merge($6->getNextList(),N_nextlist);
+					temp = merge($6->getNextList(),N_nextlist);
 				}
 				
-				$$->setNextList(CodeBuffer::instance().merge(temp,elseNextList));
+				$$->setNextList(merge(temp,elseNextList));
 			}
 			else {
 				
-				$$->setNextList(CodeBuffer::instance().merge($3->getFalseList(),$6->getNextList()));
+				$$->setNextList(merge($3->getFalseList(),$6->getNextList()));
 				
 				//string nextLine = CodeBuffer::instance().genLabel();
 				//cout << "nextline :" << nextLine << endl;
@@ -825,10 +828,13 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 		| TRUE 												{$$->setType("BOOL");
 															$$->setBoolVal(true);
 															int nextLine = e.gotoEmpty();
+															//cout << "nextLineTrue :" << nextLine << endl;
 															$$->setTrueList(makelist(nextLine));
+															//cout << "1     " << $$->getTrueList()[0] << endl;
 															}
 		| FALSE 											{$$->setType("BOOL");
 															int nextLine = e.gotoEmpty();
+															//cout << "nextLineFalse :" << nextLine << endl;
 															$$->setFalseList(makelist(nextLine));
 																		
 															}
@@ -843,12 +849,19 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															
 															vector<int> oldTrueList = $2->getTrueList();
 															vector<int> oldFalseList = $2->getFalseList();
+															//cout << "trueListSize " << oldTrueList.size() << endl;
+															//cout << "falseListSize " << oldFalseList.size() << endl;
 															$$->setTrueList(oldFalseList);
 															$$->setFalseList(oldTrueList);
+															//cout << "trueListSize2 " << oldTrueList.size() << endl;
+															//cout << "falseListSize2 " << oldFalseList.size() << endl;
+															//cout << "trueListSizeNew " << $$->getTrueList().size() << endl;
+															//cout << "falseListSizeNew " << $$->getFalseList().size() << endl;
+															//cout << $$->getTrueList()[0] << endl;
 															}
 
 		| Exp AND {
-			
+			oldAndFalseList = $1->getFalseList();
 			string nextLine = CodeBuffer::instance().genLabel();
 			CodeBuffer::instance().bpatch($1->getTrueList(),nextLine);
 		}
@@ -859,24 +872,26 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															}	
 															$$->setType("BOOL");
 															$$->setTrueList($4->getTrueList());
-															$$->setFalseList(CodeBuffer::instance()
-																			.merge($1->getFalseList(),$4->getFalseList()));
+															$$->setFalseList(merge(oldAndFalseList,$4->getFalseList()));
 															}
 
 		| Exp OR {
 			
 			string nextLine = CodeBuffer::instance().genLabel();
-			//cout << "nextline OR :" << nextLine << endl;
+			
+			oldOrTrueList = $1->getTrueList();
 			CodeBuffer::instance().bpatch($1->getFalseList(),nextLine);
 		}
-		Exp 										{if($1->getType() != "BOOL" || $4->getType() != "BOOL") {
+		Exp 										{
+															if($1->getType() != "BOOL" || $4->getType() != "BOOL") {
 																errorMismatch(yylineno); 
 																PopAllStacks();
 																exit(0);
 															}	
 															$$->setType("BOOL");
-															$$->setTrueList(CodeBuffer::instance()
-																			.merge($1->getTrueList(),$4->getTrueList()));
+															
+															$$->setTrueList(merge(oldOrTrueList,$4->getTrueList()));
+															
 															$$->setFalseList($4->getFalseList());
 															}
 

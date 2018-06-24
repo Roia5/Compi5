@@ -253,6 +253,8 @@ int emit(string msg);
 
 vector<int> makelist(int item);
 
+vector<int> merge(const vector<int> &l1,const vector<int> &l2);
+
 #ifndef YYSTYPE
 #define YYSTYPE VarType*
 #endif

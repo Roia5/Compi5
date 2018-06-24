@@ -333,3 +333,18 @@ int emit(string msg){
 vector<int> makelist(int item){
 	return CodeBuffer::instance().makelist(item);
 }
+
+vector<int> merge(const vector<int> &l1,const vector<int> &l2){
+	bool same = false;
+	if(l1.size()==l2.size()){
+		same = true;
+		for(int i=0;i<l1.size();i++){
+			if(l1[i]!=l2[i]){
+				same = false;
+				break;
+			}
+		}
+	}
+	if(same) return l1;
+	return CodeBuffer::instance().merge(l1,l2);
+}
