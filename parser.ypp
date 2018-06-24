@@ -639,7 +639,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															
 															
 															}
-		| ID LBRACK Exp RBRACK								{//script killer
+		| ID LBRACK Exp RBRACK								{
 															TEntry* t = findByID($1->getName());
 															if(!t) {
 																errorUndef(yylineno, $1->getName());
@@ -653,15 +653,16 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															}
 															
 															e.arrayIsInRange(numberToString(t->getArrSize()), $3->getRegister());
-															
-															//string resreg = register_handler.getAvailReg();
-															//e.la(resreg, numberToString(t->getOffset()) + "($sp)");
-															//e.sub(resreg, resreg, $3->getRegister());
-															//e.sub(resreg, resreg, $3->getRegister());
-															//e.sub(resreg, resreg, $3->getRegister());
-															//e.sub(resreg, resreg, $3->getRegister());
-															
-															$$->setRegister($3->getRegister());
+																
+															string resreg = register_handler.getAvailReg();
+																
+															e.li(resreg, numberToString(t->getOffset()));
+															e.add(resreg, resreg, $3->getRegister());
+															e.mul(resreg, resreg, numberToString(STACK_ENTRY_SIZE));
+															e.sub(resreg, fp_reg, resreg);
+															e.lw(resreg, "(" + resreg + ")");
+																
+															$$->setRegister(resreg);
 															$$->setName($1->getName() + "[]");	
 															$$->setType(t->getType());
 															//register_handler.returnRegisterToPool($3->getRegister());
