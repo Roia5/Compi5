@@ -39,7 +39,7 @@ class emitter {
 				pushRegister(regIndexToName(i));
 			}
 			pushRegister(fp_reg);
-			pushRegister("$ra");
+			pushRegister(ra_reg);
 			for(int i = 0; i < argumentRegs.size(); i++){
 				pushRegister(argumentRegs[i]);
 			}
@@ -51,7 +51,7 @@ class emitter {
 			for(int i=0;i<argumentRegs.size();i++){
 				popRegister(argumentRegs[i]);
 			}
-			popRegister("$ra");
+			popRegister(ra_reg);
 			popRegister(fp_reg);
 			for(int i = NUM_REGS - 1; i >= 0; i--){
 				popRegister(regIndexToName(i));
@@ -200,7 +200,7 @@ class emitter {
 
 		//return from func and restore ra register
 		int jr(){
-			return emit("jr $ra");
+			return emit("jr " + ra_reg);
 		}
 		
 		//no operation

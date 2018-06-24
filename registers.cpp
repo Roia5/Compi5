@@ -12,6 +12,7 @@ using namespace std;
 
 const string fp_reg = "$fp";
 const string sp_reg = "$sp";
+const string ra_reg = "$ra";
 
 static string regIndexToName(int index){
     switch(index){
