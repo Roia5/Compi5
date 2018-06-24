@@ -406,6 +406,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 				exit(0);
 			}
 			returnTypeFound = "VOID";
+			e.jr();
 		}
 		| RETURN Exp SC {
 			if (funcs_stack.empty() || funcs_stack.back()) {
@@ -446,7 +447,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 			}
 			e.mov("$v0",reg);
 			register_handler.returnRegisterToPool(reg);
-			
+			e.jr();
 		}
 		| IF  LPAREN Exp RPAREN {
 			if($3->getType()!="BOOL"){
@@ -638,9 +639,15 @@ ExpList :		Exp											{
 																$$->addRegisterToList(reg);
 																//register_handler.returnRegisterToPool(reg);
 															}
+															else if($1->getType()=="BOOL"){
+																string reg = register_handler.getAvailReg();
+																e.booleanRegisterHandle(reg, $1->getTrueList(), $1->getFalseList());
+																$$->addRegisterToList(reg);
+															}
 															else {
 																$$->addRegisterToList($1->getRegister());
 															}
+															
 															}
 		| Exp COMMA ExpList									{
 															$$->setType($1->getType() + "," + $3->getType());
@@ -785,7 +792,9 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															
 															}
 		| Call												{$$->setType($1->getType());
-															$$->setRegister("$v0");
+															string reg = register_handler.getAvailReg();
+															e.mov(reg,"$v0");
+															$$->setRegister(reg);
 		
 		}
 		| NUM												{$$->setType("INT");
