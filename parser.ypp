@@ -384,13 +384,13 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																	
 																	e.arrayIsInRange(numberToString(t->getArrSize()), $3->getRegister());
 																	
-																	//string resreg = t->getRegister();
-																	//e.la(resreg, numberToString(t->getOffset()));
-																	//e.add(resreg, resreg, $3->getRegister());
-																	//e.add(resreg, resreg, $3->getRegister());
-																	//e.add(resreg, resreg, $3->getRegister());
-																	//e.add(resreg, resreg, $3->getRegister());
-																	//e.lw(resreg, $6->getRegister());
+																	string resreg = register_handler.getAvailReg();
+																
+																	e.li(resreg, numberToString(t->getOffset()));
+																	e.add(resreg, resreg, $3->getRegister());
+																	e.mul(resreg, resreg, numberToString(STACK_ENTRY_SIZE));
+																	e.sub(resreg, fp_reg, resreg);
+																	e.sw($6->getRegister(), "(" + resreg + ")");
 																}
 		| Call SC
 		| RETURN SC {

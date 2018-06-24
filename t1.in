@@ -3,7 +3,16 @@ void main(){
 	int t = 1;
 	int x = 4;
 	int g[10];
+	printi(10);
 	x = g[1];
-	int y = 4/x;
-	int r = g[34];
+	printi(x);
+	printi(11);
+	g[1] = f;
+	x = g[1];
+	printi(x);
+	printi(12);
+	g[1] = 56;
+	x = g[1];
+	printi(x);
+	printi(13);
 }

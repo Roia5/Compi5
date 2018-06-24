@@ -7,8 +7,6 @@
 #include "registers.cpp"
 
 using namespace std;
-const string fp_reg = "$fp";
-const string sp_reg = "$sp";
 #define STACK_ENTRY_SIZE 4
 
 class emitter {
@@ -26,8 +24,8 @@ class emitter {
 		int jump(string jorjal, string label) {
 			return emit(jorjal + " " + label);
 		}
-		
-		string parent_reg(string reg) {
+
+		string parent_reg(const string reg) {
 			return "(" + reg + ")";
 		}
 	public:
@@ -37,12 +35,12 @@ class emitter {
 			/*for(int i=0;i<usedRegVec.size();i++){
 				pushRegister(usedRegVec[i]);
 			}*/
-			for(int i=0;i<18;i++){
+			for (int i = 0; i < NUM_REGS; i++) {
 				pushRegister(regIndexToName(i));
 			}
 			pushRegister(fp_reg);
-			pushRegister("$ra");
-			for(int i=0;i<argumentRegs.size();i++){
+			pushRegister(ra_reg);
+			for(int i = 0; i < argumentRegs.size(); i++){
 				pushRegister(argumentRegs[i]);
 			}
 			//rh.resetPool();
@@ -53,9 +51,9 @@ class emitter {
 			for(int i=0;i<argumentRegs.size();i++){
 				popRegister(argumentRegs[i]);
 			}
-			popRegister("$ra");
+			popRegister(ra_reg);
 			popRegister(fp_reg);
-			for(int i=17;i>=0;i--){
+			for(int i = NUM_REGS - 1; i >= 0; i--){
 				popRegister(regIndexToName(i));
 			}
 
@@ -148,17 +146,7 @@ class emitter {
 		
 		//divide rsrc by src and save to rdest
 		int div(string rdest, string rsrc, string src) {
-			//string error_reg = rh.getAvailReg();
-			//li(error_reg, src);
 			emit("beq " + src + ", 0, labelZeroDiv");
-			//rh.returnRegisterToPool(error_reg);
-			
-			//print_error("print", "errorZeroDiv");
-			
-			//string valid_label = "div_ok_" + numberToString(++valid_unique_label);
-			//CodeBuffer::instance().emit(valid_label + ":");
-			//CodeBuffer::instance().bpatch(CodeBuffer::instance().makelist(emitted), valid_label);
-			
 			return action3op("div", rdest, rsrc, src);
 		}
 		
@@ -212,7 +200,7 @@ class emitter {
 
 		//return from func and restore ra register
 		int jr(){
-			return emit("jr $ra");
+			return emit("jr " + ra_reg);
 		}
 		
 		//no operation
