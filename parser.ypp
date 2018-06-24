@@ -661,11 +661,11 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															e.mul(resreg, resreg, numberToString(STACK_ENTRY_SIZE));
 															e.sub(resreg, fp_reg, resreg);
 															e.lw(resreg, "(" + resreg + ")");
-																
+															//register_handler.returnRegisterToPool(resreg);	
 															$$->setRegister(resreg);
 															$$->setName($1->getName() + "[]");	
 															$$->setType(t->getType());
-															//register_handler.returnRegisterToPool($3->getRegister());
+															
 															}
 		| Exp BINOP_MULT Exp								{
 															
