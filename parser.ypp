@@ -185,14 +185,11 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																	exit(0);
 																}
 																$2->setType($1->getType()); 
-																/*if($1->getType() == "INT" || $1->getType() == "BYTE")
-																	$2->setIntVal(0);
-																else if($1->getType() == "BOOL"){
-																	$2->setBoolVal(false);
-																}*/
+																
 																dynamic_cast<TEntry*>($2)->setKind(Var);
 																InsertVar($2->getName(),$1->getType(),$2);
 																string reg = register_handler.getAvailReg();
+																			//cout << "5 allocated register " << reg << endl;
 																if($1->getType() == "INT" || $1->getType() == "BYTE"){
 																	e.li(reg,"0");
 																	e.pushRegister(reg);
@@ -200,8 +197,9 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																else {
 																	//todo handle false var initialize
 																}
-																//cout << "1" << endl;
+																
 																register_handler.returnRegisterToPool(reg);
+																//cout << "6 freed register " << reg << endl;
 																}
 		| Type ID ASSIGN Exp SC									{
 																if(isIdentifierExists($2->getName())){
@@ -219,9 +217,21 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																$2->setType($1->getType());
 																dynamic_cast<TEntry*>($2)->setKind(Var);
 																InsertVar($2->getName(),$1->getType(),$2);
-																e.pushRegister($4->getRegister());
-																//cout << "2" << endl;
-																register_handler.returnRegisterToPool($4->getRegister());
+																
+																TEntry* t = findByID($2->getName());
+																string reg;
+																if(t->getType()=="INT" || t->getType()=="BYTE"){
+																	reg = $4->getRegister();
+																	//e.pushRegister(reg);
+																	e.storeVariable(reg,t->getOffset());
+																}
+																else if(t->getType()=="BOOL"){
+																		reg = register_handler.getAvailReg();
+																		e.booleanRegisterHandle(reg, $4->getTrueList(), $4->getFalseList());
+																		e.storeVariable(reg,t->getOffset());
+																	}
+																register_handler.returnRegisterToPool(reg);
+																//coutcout << "7 freed register " << reg << endl;
 																}
 		| Type ID LBRACK NUM RBRACK SC							{
 																if(isIdentifierExists($2->getName())){
@@ -242,6 +252,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																InsertArray($2->getName(),$1->getType(), number);
 
 																string reg = register_handler.getAvailReg();
+																			//cout << "6 allocated register " << reg << endl;
 																if($1->getType() == "INT" || $1->getType() == "BYTE"){
 																	e.li(reg,"0");
 																	e.initArray(reg,$4->getIntVal());
@@ -251,6 +262,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																}
 																
 																register_handler.returnRegisterToPool(reg);
+																			//cout << "1 freed register " << reg << endl;
 																}
 		| Type ID LBRACK NUM B RBRACK SC						{
 																if(isIdentifierExists($2->getName())){
@@ -325,9 +337,20 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																			PopAllStacks();
 																			exit(0);
 																		}	
-																e.storeVariable($3->getRegister(), t->getOffset());
-																//cout << "4" << endl;
-																register_handler.returnRegisterToPool($3->getRegister());
+																	string reg;
+																	if(t->getType()=="INT" || t->getType()=="BYTE"){
+																		reg = $3->getRegister();
+																		e.storeVariable(reg, t->getOffset());
+																	}
+																	else if(t->getType()=="BOOL"){
+																		reg = register_handler.getAvailReg();
+																		e.booleanRegisterHandle(reg, $3->getTrueList(), $3->getFalseList());
+																		e.storeVariable(reg,t->getOffset());
+																	}
+																	//cout << "boolean freed register " << reg << endl;
+																	//cout << "num used regs:" << register_handler.getUsedRegisters().size() << endl;
+																	register_handler.returnRegisterToPool(reg);
+																	//cout << "num used regs2:" << register_handler.getUsedRegisters().size() << endl;
 																}
 														
 																}
@@ -409,9 +432,19 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 					}
 				}
 			}
-			e.mov("$v0",$2->getRegister());
-			//cout << "5" << endl;
-			register_handler.returnRegisterToPool($2->getRegister());
+			string reg;
+			if($2->getType()=="INT" || $2->getType()=="BYTE"){
+				reg = $2->getRegister();
+				register_handler.returnRegisterToPool($2->getRegister());
+				//cout << "2 freed register " << reg << endl;
+			}
+			else if($2->getType()=="BOOL"){
+				reg = register_handler.getAvailReg();
+				e.booleanRegisterHandle(reg, $2->getTrueList(), $2->getFalseList());
+			}
+			e.mov("$v0",reg);
+			register_handler.returnRegisterToPool(reg);
+			//cout << "3 freed register " << reg << endl;
 		}
 		| IF  LPAREN Exp RPAREN {
 			if($3->getType()!="BOOL"){
@@ -444,17 +477,17 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 		}
 		| WHILE {string nextLine = CodeBuffer::instance().genLabel();
 					while_m1_nextLine = nextLine;
-						//cout << "ere" << endl;
+					
 					} 
 		LPAREN Exp RPAREN 					{ if($4->getType()!="BOOL"){
-														//cout << "here" << $4->getType() << endl;
+														
 														errorMismatch(yylineno);
 														PopAllStacks();
 														exit(0);
 												}
-													//cout << "ere2" << endl;
-												//string nextLine = CodeBuffer::instance().genLabel();
-												//while_m2_nextLine = nextLine;
+													
+												string nextLine = CodeBuffer::instance().genLabel();
+												while_m2_nextLine = nextLine;
 												
 												while_stack.push_back(true); StartScope(); } 
 		Statement 																{ //cout << "er5e3" << endl;
@@ -468,10 +501,10 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																				}
 																					//cout << "ere3" << endl;
 																				ExitScope();	
-												//CodeBuffer::instance().bpatch($7->getNextList(),while_m1_nextLine);
-												//CodeBuffer::instance().bpatch($4->getTrueList(),while_m2_nextLine);
+												CodeBuffer::instance().bpatch($7->getNextList(),while_m1_nextLine);
+												CodeBuffer::instance().bpatch($4->getTrueList(),while_m2_nextLine);
 												$$->setNextList($4->getFalseList());
-												//CodeBuffer::instance().emit("j " + while_m1_nextLine);
+												CodeBuffer::instance().emit("j " + while_m1_nextLine);
 																				}
 		| BREAK SC {
 			if (!while_stack.back()) {
@@ -598,42 +631,40 @@ Type :		INT
 ;
 
 Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
-															if($2->getType()=="INT" || $2->getType()=="BYTE"){
-																$$->setIntVal($2->getIntVal());
-															}
-															else if($2->getType()=="BOOL"){
-																$$->setBoolVal($2->getBoolVal());
+															if($2->getType()!="BOOL"){
+																$$->setRegister($2->getRegister());
 															}
 															$$->setTrueList($2->getTrueList());
 															$$->setFalseList($2->getFalseList());
-															$$->setRegister($2->getRegister());
+															
+															
 															}
-		| ID LBRACK Exp RBRACK								{
-																TEntry* t = findByID($1->getName());
-																if(!t) {
-																	errorUndef(yylineno, $1->getName());
-																	PopAllStacks();
-																	exit(0);
-																}
-																if($3->getType()!="INT" && $3->getType()!="BYTE" || t->getKind()!=Array) {
-																	errorMismatch(yylineno); 
-																	PopAllStacks();
-																	exit(0);
-																}
-																
-																e.arrayIsInRange(numberToString(t->getArrSize()), $3->getRegister());
-																
-																string resreg = register_handler.getAvailReg();
-																
-																e.li(resreg, numberToString(t->getOffset()));
-																e.add(resreg, resreg, $3->getRegister());
-																e.mul(resreg, resreg, numberToString(STACK_ENTRY_SIZE));
-																e.sub(resreg, fp_reg, resreg);
-																e.lw(resreg, "(" + resreg + ")");
-																
-																$$->setRegister(resreg);
-																$$->setName($1->getName() + "[]");	
-																$$->setType(t->getType());
+		| ID LBRACK Exp RBRACK								{//script killer
+															TEntry* t = findByID($1->getName());
+															if(!t) {
+																errorUndef(yylineno, $1->getName());
+																PopAllStacks();
+																exit(0);
+															}
+															if($3->getType()!="INT" && $3->getType()!="BYTE" || t->getKind()!=Array) {
+																errorMismatch(yylineno); 
+																PopAllStacks();
+																exit(0);
+															}
+															
+															e.arrayIsInRange(numberToString(t->getArrSize()), $3->getRegister());
+															
+															//string resreg = register_handler.getAvailReg();
+															//e.la(resreg, numberToString(t->getOffset()) + "($sp)");
+															//e.sub(resreg, resreg, $3->getRegister());
+															//e.sub(resreg, resreg, $3->getRegister());
+															//e.sub(resreg, resreg, $3->getRegister());
+															//e.sub(resreg, resreg, $3->getRegister());
+															
+															$$->setRegister($3->getRegister());
+															$$->setName($1->getName() + "[]");	
+															$$->setType(t->getType());
+															//register_handler.returnRegisterToPool($3->getRegister());
 															}
 		| Exp BINOP_MULT Exp								{
 															
@@ -661,6 +692,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																e.zeroTopBits(reg1);
 															}
 															register_handler.returnRegisterToPool(reg2);
+															//cout << "4 freed register " << reg2 << endl;
 															}
 
 		| Exp BINOP_ADD Exp									{
@@ -690,6 +722,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																e.zeroTopBits(reg1);
 															}
 															register_handler.returnRegisterToPool(reg2);
+															//cout << "5 freed register " << reg2 << endl;
 															}
 		| ID												{
 															if(!isIdentifierExists($1->getName())){
@@ -704,8 +737,12 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															}
 															else {
 																$$->setType(t->getType());
-																$$->setRegister(register_handler.getAvailReg());
-																e.loadVariable($$->getRegister(), t->getOffset());
+																if(t->getType()!= "BOOL"){
+																	$$->setRegister(register_handler.getAvailReg());
+																	//cout << "1 allocated register " << $$->getRegister() << endl;
+																	e.loadVariable($$->getRegister(), t->getOffset());
+																}
+																
 															}
 														
 
@@ -718,6 +755,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 		| NUM												{$$->setType("INT");
 															$$->setIntVal($1->getIntVal());
 															string reg = register_handler.getAvailReg();
+																		//cout << "2 allocated register " << reg << endl;
 															e.li(reg,numberToString($1->getIntVal()));
 															$$->setRegister(reg);
 															}
@@ -730,6 +768,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															}
 															$$->setIntVal($1->getIntVal());	
 															string reg = register_handler.getAvailReg();
+																		//cout << "3 allocated register " << reg << endl;
 															e.li(reg,numberToString($1->getIntVal()));
 															$$->setRegister(reg);
 															}
@@ -742,6 +781,9 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 		| FALSE 											{$$->setType("BOOL");
 															int nextLine = e.gotoEmpty();
 															$$->setFalseList(makelist(nextLine));
+																		/*for(int i=0;i<$$->getFalseList().size();i++){
+				cout << "falseList3[i]: " << $$->getFalseList()[i] << endl;
+			}*/
 															}
 
 		| NOT Exp 											{if($2->getType() != "BOOL"){
@@ -749,10 +791,13 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																PopAllStacks();
 																exit(0);
 															}	
+															//cout << "hello" << endl;
 															$$->setType("BOOL");
-															$$->setTrueList($2->getFalseList());
-															$$->setFalseList($2->getTrueList());
-
+															
+															vector<int> oldTrueList = $2->getTrueList();
+															vector<int> oldFalseList = $2->getFalseList();
+															$$->setTrueList(oldFalseList);
+															$$->setFalseList(oldTrueList);
 															}
 
 		| Exp AND {
