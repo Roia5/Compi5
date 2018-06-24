@@ -28,6 +28,7 @@
 	int if_N_nextLine;
 	bool one_statement;
 
+	int inputCount = 0;
 	string returnTypeFound = "return not done";
 	bool foundMain = false;
 
@@ -167,16 +168,17 @@ FormalDecl :		Type ID										{$$->setType($1->getType());
 ;
 
 Statements :		Statement	{$$->setNextList($1->getNextList()); one_statement = true;}
-		| Statements {string newLabel = CodeBuffer::instance().genLabel();
+		| Statements {
+					string newLabel = CodeBuffer::instance().genLabel();
 					CodeBuffer::instance().bpatch($1->getNextList(),newLabel);}
 		 Statement {$$->setNextList($3->getNextList()); one_statement = false;}	
 ;
  
-Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << endl;
+Statement :		LBRACE {StartScope();} Statements {ExitScope(); 
 																vector<int> list = $3->getNextList(); 
-																//cout <<"wtf2" << endl;
+																
 																$$->setNextList(list);
-																//cout <<"wtf3" << endl;
+																
 																} RBRACE
 		| Type ID SC											{
 																if(isIdentifierExists($2->getName())){
@@ -189,7 +191,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																dynamic_cast<TEntry*>($2)->setKind(Var);
 																InsertVar($2->getName(),$1->getType(),$2);
 																string reg = register_handler.getAvailReg();
-																			//cout << "5 allocated register " << reg << endl;
+																			
 																if($1->getType() == "INT" || $1->getType() == "BYTE"){
 																	e.li(reg,"0");
 																	e.pushRegister(reg);
@@ -199,7 +201,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																}
 																
 																register_handler.returnRegisterToPool(reg);
-																//cout << "6 freed register " << reg << endl;
+																
 																}
 		| Type ID ASSIGN Exp SC									{
 																if(isIdentifierExists($2->getName())){
@@ -231,7 +233,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																		e.storeVariable(reg,t->getOffset());
 																	}
 																register_handler.returnRegisterToPool(reg);
-																//coutcout << "7 freed register " << reg << endl;
+																
 																}
 		| Type ID LBRACK NUM RBRACK SC							{
 																if(isIdentifierExists($2->getName())){
@@ -252,7 +254,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																InsertArray($2->getName(),$1->getType(), number);
 
 																string reg = register_handler.getAvailReg();
-																			//cout << "6 allocated register " << reg << endl;
+																			
 																if($1->getType() == "INT" || $1->getType() == "BYTE"){
 																	e.li(reg,"0");
 																	e.initArray(reg,$4->getIntVal());
@@ -260,9 +262,9 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																else {
 																	//todo handle false array initialize
 																}
-																//cout << "3" << endl;
+																
 																register_handler.returnRegisterToPool(reg);
-																			//cout << "1 freed register " << reg << endl;
+																			
 																}
 		| Type ID LBRACK NUM B RBRACK SC						{
 																if(isIdentifierExists($2->getName())){
@@ -345,10 +347,9 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 																		e.booleanRegisterHandle(reg, $3->getTrueList(), $3->getFalseList());
 																		e.storeVariable(reg,t->getOffset());
 																	}
-																	//cout << "boolean freed register " << reg << endl;
-																	//cout << "num used regs:" << register_handler.getUsedRegisters().size() << endl;
+																
 																	register_handler.returnRegisterToPool(reg);
-																	//cout << "num used regs2:" << register_handler.getUsedRegisters().size() << endl;
+																	
 																}
 														
 																}
@@ -432,7 +433,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 			if($2->getType()=="INT" || $2->getType()=="BYTE"){
 				reg = $2->getRegister();
 				register_handler.returnRegisterToPool($2->getRegister());
-				//cout << "2 freed register " << reg << endl;
+				
 			}
 			else if($2->getType()=="BOOL"){
 				reg = register_handler.getAvailReg();
@@ -440,7 +441,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 			}
 			e.mov("$v0",reg);
 			register_handler.returnRegisterToPool(reg);
-			//cout << "3 freed register " << reg << endl;
+			
 		}
 		| IF  LPAREN Exp RPAREN {
 			if($3->getType()!="BOOL"){
@@ -449,6 +450,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 				exit(0);
 			}
 			StartScope();
+			
 			string newLabel = CodeBuffer::instance().genLabel();
 			CodeBuffer::instance().bpatch($3->getTrueList(),newLabel);
 			
@@ -466,12 +468,14 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 			}
 			else {
 				$$->setNextList(CodeBuffer::instance().merge($3->getFalseList(),$6->getNextList()));
+				
 				string nextLine = CodeBuffer::instance().genLabel();
 				CodeBuffer::instance().bpatch($3->getFalseList(),nextLine);
 			}
 			foundElse = false;
 		}
-		| WHILE {string nextLine = CodeBuffer::instance().genLabel();
+		| WHILE {
+			string nextLine = CodeBuffer::instance().genLabel();
 					while_m1_nextLine = nextLine;
 					
 					} 
@@ -486,16 +490,16 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope(); //cout <<"wtf1" << 
 												while_m2_nextLine = nextLine;
 												
 												while_stack.push_back(true); StartScope(); } 
-		Statement 																{ //cout << "er5e3" << endl;
+		Statement 																{ 
 																				while_stack.pop_back(); 
 																				
 																				if($4->getType()!="BOOL"){
-																					//cout << "here2" << $4->getType() << endl;
+																					
 																					errorMismatch(yylineno); 
 																					PopAllStacks();
 																					exit(0);
 																				}
-																					//cout << "ere3" << endl;
+																					
 																				ExitScope();	
 												CodeBuffer::instance().bpatch($7->getNextList(),while_m1_nextLine);
 												CodeBuffer::instance().bpatch($4->getTrueList(),while_m2_nextLine);
@@ -515,6 +519,7 @@ ElsePart :		/*epsilon*/ %prec IF
 		foundElse = false;}
 		| ELSE {StartScope();
 			foundElse = true;
+			
 			elseLabel = CodeBuffer::instance().genLabel();
 			}
 		Statement {ExitScope();
@@ -610,7 +615,17 @@ Call :		ID LPAREN ExpList
 
 ExpList :		Exp											{
 															$$->setType($1->getType());
-															$$->addRegisterToList($1->getRegister());}
+															
+															if($1->getType()=="STRING"){
+																string reg = register_handler.getAvailReg();
+																e.la(reg, $1->getStringLabel());
+																$$->addRegisterToList(reg);
+																//register_handler.returnRegisterToPool(reg);
+															}
+															else {
+																$$->addRegisterToList($1->getRegister());
+															}
+															}
 		| Exp COMMA ExpList									{
 															$$->setType($1->getType() + "," + $3->getType());
 															vector<string> list = $3->getRegisterList();
@@ -688,7 +703,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																e.zeroTopBits(reg1);
 															}
 															register_handler.returnRegisterToPool(reg2);
-															//cout << "4 freed register " << reg2 << endl;
+															
 															}
 
 		| Exp BINOP_ADD Exp									{
@@ -718,7 +733,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																e.zeroTopBits(reg1);
 															}
 															register_handler.returnRegisterToPool(reg2);
-															//cout << "5 freed register " << reg2 << endl;
+															
 															}
 		| ID												{
 															if(!isIdentifierExists($1->getName())){
@@ -735,8 +750,16 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																$$->setType(t->getType());
 																if(t->getType()!= "BOOL"){
 																	$$->setRegister(register_handler.getAvailReg());
-																	//cout << "1 allocated register " << $$->getRegister() << endl;
+																	
 																	e.loadVariable($$->getRegister(), t->getOffset());
+																}
+																else {
+																	string reg = register_handler.getAvailReg();
+																	int line = e.bne(reg, "0");
+																	$$->setTrueList(makelist(line));
+																	int nextLine = e.gotoEmpty();
+																	$$->setFalseList(makelist(nextLine));
+																	register_handler.returnRegisterToPool(reg);
 																}
 																
 															}
@@ -751,7 +774,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 		| NUM												{$$->setType("INT");
 															$$->setIntVal($1->getIntVal());
 															string reg = register_handler.getAvailReg();
-																		//cout << "2 allocated register " << reg << endl;
+																		
 															e.li(reg,numberToString($1->getIntVal()));
 															$$->setRegister(reg);
 															}
@@ -764,11 +787,17 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															}
 															$$->setIntVal($1->getIntVal());	
 															string reg = register_handler.getAvailReg();
-																		//cout << "3 allocated register " << reg << endl;
+																		
 															e.li(reg,numberToString($1->getIntVal()));
 															$$->setRegister(reg);
 															}
-		| STRING											
+		| STRING											{
+			
+															string string_label = "input" + numberToString(inputCount++);
+															string long_string_label = string_label + ":    .asciiz " + $1->getStringVal();
+															CodeBuffer::instance().emitData(long_string_label);
+															$$->setStringLabel(string_label);
+															}
 		| TRUE 												{$$->setType("BOOL");
 															$$->setBoolVal(true);
 															int nextLine = e.gotoEmpty();
@@ -777,9 +806,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 		| FALSE 											{$$->setType("BOOL");
 															int nextLine = e.gotoEmpty();
 															$$->setFalseList(makelist(nextLine));
-																		/*for(int i=0;i<$$->getFalseList().size();i++){
-				cout << "falseList3[i]: " << $$->getFalseList()[i] << endl;
-			}*/
+																		
 															}
 
 		| NOT Exp 											{if($2->getType() != "BOOL"){
@@ -787,7 +814,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																PopAllStacks();
 																exit(0);
 															}	
-															//cout << "hello" << endl;
+															
 															$$->setType("BOOL");
 															
 															vector<int> oldTrueList = $2->getTrueList();
@@ -797,6 +824,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															}
 
 		| Exp AND {
+			
 			string nextLine = CodeBuffer::instance().genLabel();
 			CodeBuffer::instance().bpatch($1->getTrueList(),nextLine);
 		}
@@ -812,6 +840,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															}
 
 		| Exp OR {
+			
 			string nextLine = CodeBuffer::instance().genLabel();
 			CodeBuffer::instance().bpatch($1->getFalseList(),nextLine);
 		}

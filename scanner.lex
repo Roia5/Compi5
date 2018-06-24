@@ -64,7 +64,7 @@ break 																		return BREAK;
 \x2D                                                                        { yylval = new VarType("",""); yylval->setOp("-");return BINOP_ADD;}
 {letter}{id_letter}* 														{ yylval = new TEntry(yytext,""); return ID;}
 0|[1-9]{digit}* 															{ yylval = new VarType("","",atoi(yytext)); return NUM; }
-\x22([^\n\r\"\\]|\\[rnt"\\])+\x22											{ yylval = new VarType("STRING",""); return STRING;}
+\x22([^\n\r\"\\]|\\[rnt"\\])+\x22											{ yylval = new VarType("STRING",""); yylval->setStringVal((string)yytext); return STRING;}
 {whitespace}																;
 \x2F\x2F[^\r\n]*[\r|\n|\r\n]?												;
 <<EOF>>																		return EOF;
