@@ -275,7 +275,7 @@ class emitter {
 			sub(destreg, fp_reg, destreg);
 			
 			for (int i = 0; i < dest->getArrSize(); i++) {
-				lw(valreg, srcreg);
+				lw(valreg, parent_reg(srcreg));
 				sw(valreg, parent_reg(destreg));
 				sub(srcreg, srcreg, numberToString(STACK_ENTRY_SIZE));
 				sub(destreg, destreg, numberToString(STACK_ENTRY_SIZE));
