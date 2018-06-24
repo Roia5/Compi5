@@ -1,5 +1,6 @@
 #include "attributes.hpp"
 #include "bp.hpp"
+
 vector <vector<TEntry> > tables_stack;
 vector <int> offsets_stack;
 

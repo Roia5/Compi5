@@ -486,7 +486,6 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 			foundElse = false;
 		}
 		
-		
 		| WHILE 
 				{
 					while_start_nextLine = CodeBuffer::instance().genLabel();
@@ -508,7 +507,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 				{
 					while_stack.pop_back(); 
 					
-					if($4->getType()!="BOOL"){
+					if ($4->getType()!="BOOL"){
 						errorMismatch(yylineno); 
 						PopAllStacks();
 						exit(0);
@@ -525,14 +524,13 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 					//$$->setNextList($4->getFalseList());
 				}
 				
-				
-		| BREAK SC {
-			if (!while_stack.back()) {
-				errorUnexpectedBreak(yylineno);
-				PopAllStacks();
-				exit(0);
-			}
-		}
+		| BREAK SC	{
+						if (!while_stack.back()) {
+							errorUnexpectedBreak(yylineno);
+							PopAllStacks();
+							exit(0);
+						}
+					}
 ;
 ElsePart :		/*epsilon*/ %prec IF
 		{
