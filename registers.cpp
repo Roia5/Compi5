@@ -1,4 +1,3 @@
-
 #include <vector>
 #include <string>
 #include <stdlib.h>
@@ -6,8 +5,13 @@
 #include <iostream>
 #include <sstream>
 #include "attributes.hpp"
+
 using namespace std;
+
 #define NUM_REGS 18
+
+const string fp_reg = "$fp";
+const string sp_reg = "$sp";
 
 static string regIndexToName(int index){
     switch(index){

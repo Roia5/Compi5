@@ -7,8 +7,6 @@
 #include "registers.cpp"
 
 using namespace std;
-const string fp_reg = "$fp";
-const string sp_reg = "$sp";
 #define STACK_ENTRY_SIZE 4
 
 class emitter {
