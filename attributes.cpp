@@ -407,6 +407,26 @@ bool VarType::getBoolVal(){
 	return this->boolVal;
 }
 
+void VarType::addArrayArg(ArrayType t){
+	if(t.size == 0) return;
+	this->arrayArgs.push_back(t);
+}
+
+vector<ArrayType> VarType::getArrayArgs(){
+	return this->arrayArgs;
+}
+int VarType::getArrOffset(){
+	return this->arrOffset;
+}
+int VarType::getArrSize(){
+	return this->arrSize;
+}
+void VarType::setArrOffset(int arrOffset){
+	this->arrOffset = arrOffset;
+}
+void VarType::setArrSize(int arrSize){
+	this->arrSize = arrSize;
+}
 void VarType::addRegisterToList(string reg){
 	registerList.push_back(reg);
 }

@@ -34,11 +34,7 @@ class emitter {
 		}
 	public:
 		emitter(RegisterHandler& rh) : rh(rh) {}
-		void onFunctionCall(string name, vector<string> argumentRegs){	//saving all used registers by caller, $fp, $ra, argument registers, then resets pool.
-			//vector<string> usedRegVec = rh.getUsedRegisters();
-			/*for(int i=0;i<usedRegVec.size();i++){
-				pushRegister(usedRegVec[i]);
-			}*/
+		void onFunctionCall(string reg, string name, vector<string> argumentRegs, vector<ArrayType> arrayArgs){	//saving all used registers by caller, $fp, $ra, argument registers, then resets pool.
 			for (int i = 0; i < NUM_REGS; i++) {
 				pushRegister(regIndexToName(i));
 			}
@@ -47,11 +43,12 @@ class emitter {
 			for(int i = 0; i < argumentRegs.size(); i++){
 				pushRegister(argumentRegs[i]);
 			}
-			//rh.resetPool();
+			pushArrayArgs(reg, arrayArgs);
 			string real_name = "_" + name + "_";
 			jal(real_name);
 		}
-		void onFunctionReturn(vector<string> argumentRegs){
+		void onFunctionReturn(vector<string> argumentRegs, vector<ArrayType> arrayArgs){
+			popArrayArgs(arrayArgs);
 			for(int i=0;i<argumentRegs.size();i++){
 				popRegister(argumentRegs[i]);
 			}
@@ -68,7 +65,7 @@ class emitter {
 			else if(numElements<0){
 				cout << "problem in removeStackAfterScope" << endl;
 			}
-			add(sp_reg,sp_reg,numberToString(4*numElements));
+			add(sp_reg,sp_reg,numberToString(4*(numElements)));
     	}
 		string getEndMainLabel(){
 			return endMainLabel;
@@ -86,7 +83,7 @@ class emitter {
 			//popRegister("$ra");
 			//popRegister(fp_reg);
 			endMainLabel = CodeBuffer::instance().genLabel();
-						//cout << "14 :" << endMainLabel << endl;
+
 			emit("li $v0,10"); //terminate program
 			emit("syscall");
 			emit(".end main");
@@ -103,10 +100,10 @@ class emitter {
 		}
 		
 		void initArray(string reg, int length){
-			sub(sp_reg,sp_reg,numberToString(length*STACK_ENTRY_SIZE));
-			sw(reg, parent_reg(fp_reg));
+			sub(sp_reg,sp_reg,numberToString((length)*STACK_ENTRY_SIZE));
+			sw(reg, parent_reg(sp_reg));
 			for(int i=1;i<length;i++){
-				sw(reg,numberToString((-1)*i*STACK_ENTRY_SIZE) + parent_reg(sp_reg));
+				sw(reg,numberToString((1)*i*STACK_ENTRY_SIZE) + parent_reg(sp_reg));
 			}
 			/*
 			sub(fp_reg,fp_reg,numberToString(length*STACK_ENTRY_SIZE));
@@ -116,7 +113,31 @@ class emitter {
 			}
 			*/
 		}
-		
+		void pushArrayArgs(string reg, vector<ArrayType> arrayArgs){
+			
+			for(int i=0;i<arrayArgs.size();i++){
+				storeArray(reg, arrayArgs[i].offset, arrayArgs[i].size);
+			}
+		}
+		void popArrayArgs(vector<ArrayType> arrayArgs){
+			
+			if(arrayArgs.size()==0) return;
+			for(int i=arrayArgs.size()-1;i>=0;i--){
+				freeArray(arrayArgs[i].size);
+			}
+		}
+		void storeArray(string reg, int initialOffset, int length){
+			//(fp),-4(fp),-8(fp)
+			lw(reg, "($fp)");	//x[0]
+			pushRegister(reg);
+			for (int i = 1; i < length; i++) {
+				lw(reg, numberToString(-1*i*STACK_ENTRY_SIZE) + "($fp)");	//x[0]
+				pushRegister(reg);
+			}
+		}
+		void freeArray(int length){
+			add(sp_reg,sp_reg,numberToString(length*STACK_ENTRY_SIZE));
+		}
 		void loadVariable(string rdest, int offset){
 			int real_offset = (-1)*STACK_ENTRY_SIZE*offset;
 			lw(rdest,numberToString(real_offset) + parent_reg(fp_reg));
@@ -125,6 +146,11 @@ class emitter {
 			int real_offset = (-1)*STACK_ENTRY_SIZE*offset;
 			sw(rsrc,numberToString(real_offset) + parent_reg(fp_reg));
 			sub(sp_reg,sp_reg, numberToString(STACK_ENTRY_SIZE));
+		}
+		void updateVariable(string rsrc, int offset){
+			int real_offset = (-1)*STACK_ENTRY_SIZE*offset;
+			sw(rsrc,numberToString(real_offset) + parent_reg(fp_reg));
+			//sub(sp_reg,sp_reg, numberToString(STACK_ENTRY_SIZE));
 		}
 		void zeroTopBits(string reg){
 			emit("sll " + reg + ", " + reg + ", 24");	//shift left 24 bits
@@ -310,23 +336,15 @@ class emitter {
 
 		void booleanRegisterHandle(string newReg, vector<int> trueList, vector<int> falseList){
 			
-			//cout << "boolean allocated register " << newReg << endl;
 			string load_true_label = CodeBuffer::instance().genLabel();
-			//cout << "11 :" << load_true_label << endl;
 			li(newReg, "1");
 			vector<int> nextList = makelist(gotoEmpty());
 
 			string load_false_label = CodeBuffer::instance().genLabel();
-			//cout << "12 :" << load_false_label << endl;
 			li(newReg, "0");
 			string next_inst_label = CodeBuffer::instance().genLabel();
-			//cout << "13 :" << next_inst_label << endl;
 
 			CodeBuffer::instance().bpatch(trueList, load_true_label);
-			/*for(int i=0;i<falseList.size();i++){
-				cout << "falseList[i]: " << falseList[i] << endl;
-			}
-			cout << "load_false_label: " << load_false_label << endl;*/
 			CodeBuffer::instance().bpatch(falseList, load_false_label);
 			CodeBuffer::instance().bpatch(nextList, next_inst_label);
 		}

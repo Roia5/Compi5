@@ -32,12 +32,13 @@
 	string returnLabel;
 
 	vector<string> argument_list;
+	vector<ArrayType> array_arg_list;
 	string expListReg;
 	string old3;
 	int inputCount = 0;
 	string returnTypeFound = "return not done";
 	bool foundMain = false;
-
+	ArrayType expListArgArray;
 	vector<int> oldOrTrueList;
 	vector<int> oldAndFalseList;
 
@@ -182,7 +183,6 @@ FormalDecl :		Type ID										{$$->setType($1->getType());
 Statements :		Statement	{$$->setNextList($1->getNextList()); one_statement = true;}
 		| Statements {
 					string newLabel = CodeBuffer::instance().genLabel();
-					//cout << "1 :" << newLabel << endl;
 					CodeBuffer::instance().bpatch($1->getNextList(),newLabel);}
 		 Statement {$$->setNextList($3->getNextList()); one_statement = false;}	
 ;
@@ -358,13 +358,13 @@ Statement :		LBRACE {StartScope();} Statements {e.removeStackAfterScope(getCurre
 																	string reg;
 																	if(t->getType()=="INT" || t->getType()=="BYTE"){
 																		reg = $3->getRegister();
-																		e.storeVariable(reg, t->getOffset());
+																		e.updateVariable(reg, t->getOffset());
 																		
 																	}
 																	else if(t->getType()=="BOOL"){
 																		reg = register_handler.getAvailReg();
 																		e.booleanRegisterHandle(reg, $3->getTrueList(), $3->getFalseList());
-																		e.storeVariable(reg,t->getOffset());
+																		e.updateVariable(reg,t->getOffset());
 																		
 																	}
 																	register_handler.returnRegisterToPool(reg);
@@ -400,6 +400,12 @@ Statement :		LBRACE {StartScope();} Statements {e.removeStackAfterScope(getCurre
 																		PopAllStacks();
 																		exit(0);
 																	}
+																	string reg;
+																	if(t->getType()=="BOOL"){
+																		reg = register_handler.getAvailReg();
+																		e.booleanRegisterHandle(reg, $6->getTrueList(), $6->getFalseList());
+
+																	}
 																	
 																	e.arrayIsInRange(numberToString(t->getArrSize()), $3->getRegister());
 																	
@@ -413,9 +419,8 @@ Statement :		LBRACE {StartScope();} Statements {e.removeStackAfterScope(getCurre
 																		e.sw($6->getRegister(), "(" + resreg + ")");
 																		register_handler.returnRegisterToPool($6->getRegister());
 																	}
-																	else {
-																		string reg = register_handler.getAvailReg();
-																		e.booleanRegisterHandle(reg, $6->getTrueList(), $6->getFalseList());
+																	else { 
+																		
 																		//e.storeVariable(resreg,t->getOffset());
 																		e.sw(reg, "(" + resreg + ")");
 																		register_handler.returnRegisterToPool(reg);
@@ -500,7 +505,6 @@ Statement :		LBRACE {StartScope();} Statements {e.removeStackAfterScope(getCurre
 				//$$->setNextList(merge($3->getFalseList(),$6->getNextList()));
 				//$3->getFalseList()
 				string nextLine = CodeBuffer::instance().genLabel();
-				//cout << "nextline :" << nextLine << endl;
 				CodeBuffer::instance().bpatch($3->getFalseList(),nextLine);
 			}
 			foundElse = false;
@@ -571,11 +575,14 @@ ElsePart :		/*epsilon*/ %prec IF
 Call :		ID LPAREN ExpList
 			{ 
 				argument_list = $3->getRegisterList();
-				e.onFunctionCall($1->getName(),argument_list);
+				array_arg_list = $3->getArrayArgs();
+				string reg = register_handler.getAvailReg();
+				e.onFunctionCall(reg, $1->getName(),argument_list, array_arg_list);
+				register_handler.returnRegisterToPool(reg);
 				returnLabel = CodeBuffer::instance().genLabel();
 				old3 = $3->getType();
 			} RPAREN						{				//e.removeStackAfterScope(getCurrentScopeSize());
-															e.onFunctionReturn(argument_list);
+															e.onFunctionReturn(argument_list, array_arg_list);
 															for(int i=0;i<argument_list.size();i++){
 																register_handler.returnRegisterToPool(argument_list[i]);
 																
@@ -635,10 +642,14 @@ Call :		ID LPAREN ExpList
 															}
 		| ID LPAREN { 
 				vector<string> emptyVec;
-				e.onFunctionCall($1->getName(),emptyVec);
+				vector<ArrayType> emptyVec2;
+				string reg = register_handler.getAvailReg();
+				e.onFunctionCall(reg, $1->getName(),emptyVec, emptyVec2);
+				register_handler.returnRegisterToPool(reg);
 				returnLabel = CodeBuffer::instance().genLabel();
 			} RPAREN									{vector<string> emptyVec;
-				e.onFunctionReturn(emptyVec); 
+			vector<ArrayType> emptyVec2;
+				e.onFunctionReturn(emptyVec, emptyVec2); 
 															
 															TEntry* t = findByID($1->getName());
 															if(!t || t->getKind()!=Func){
@@ -682,16 +693,30 @@ ExpList :		Exp											{
 																e.booleanRegisterHandle(reg, $1->getTrueList(), $1->getFalseList());
 																$$->addRegisterToList(reg);
 															}
+															else if($1->getType().find("[") != std::string::npos) {	//isArray
+																
+																ArrayType t;
+																t.size = ($1->getArrSize());
+																t.offset = ($1->getArrOffset());
+																$$->addArrayArg(t);
+															}
 															else {
 																$$->addRegisterToList($1->getRegister());
 															}
 															
 															}
 		| Exp COMMA {										if($1->getType()=="BOOL"){
-																//cout << "$1->getType() " << $1->getType() << endl;
+																
 																expListReg = register_handler.getAvailReg();
 																e.booleanRegisterHandle(expListReg, $1->getTrueList(), $1->getFalseList());
 																
+															}
+															else if($1->getType().find("[") != std::string::npos) {	//isArray
+																
+																ArrayType t;
+																t.size = ($1->getArrSize());
+																t.offset = ($1->getArrOffset());
+																expListArgArray = t;
 															}
 															else {
 																expListReg = $1->getRegister();
@@ -703,6 +728,13 @@ ExpList :		Exp											{
 															vector<string> list = $4->getRegisterList();
 															for(int i=0;i<list.size();i++){
 																$$->addRegisterToList(list[i]);
+															}
+
+															$$->addArrayArg(expListArgArray);
+															vector<ArrayType> list2 = $4->getArrayArgs();
+															for(int i=0;i<list2.size();i++){
+																
+																$$->addArrayArg(list2[i]);
 															}
 															}
 ;
@@ -828,6 +860,8 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															e.loadVariable(reg,t->getOffset());
 															if(t->getKind() == Array){
 																$$->setType(t->getType() + "[" + numberToString(t->getArrSize()) + "]"); 
+																$$->setArrSize(t->getArrSize());
+																$$->setArrOffset(t->getOffset());
 															}
 															else {
 																$$->setType(t->getType());
@@ -881,13 +915,13 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 		| TRUE 												{$$->setType("BOOL");
 															$$->setBoolVal(true);
 															int nextLine = e.gotoEmpty();
-															//cout << "nextLineTrue :" << nextLine << endl;
+															
 															$$->setTrueList(makelist(nextLine));
-															//cout << "1     " << $$->getTrueList()[0] << endl;
+															
 															}
 		| FALSE 											{$$->setType("BOOL");
 															int nextLine = e.gotoEmpty();
-															//cout << "nextLineFalse :" << nextLine << endl;
+															
 															$$->setFalseList(makelist(nextLine));
 																		
 															}
@@ -902,15 +936,10 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															
 															vector<int> oldTrueList = $2->getTrueList();
 															vector<int> oldFalseList = $2->getFalseList();
-															//cout << "trueListSize " << oldTrueList.size() << endl;
-															//cout << "falseListSize " << oldFalseList.size() << endl;
+															
 															$$->setTrueList(oldFalseList);
 															$$->setFalseList(oldTrueList);
-															//cout << "trueListSize2 " << oldTrueList.size() << endl;
-															//cout << "falseListSize2 " << oldFalseList.size() << endl;
-															//cout << "trueListSizeNew " << $$->getTrueList().size() << endl;
-															//cout << "falseListSizeNew " << $$->getFalseList().size() << endl;
-															//cout << $$->getTrueList()[0] << endl;
+															
 															}
 
 		| Exp AND {

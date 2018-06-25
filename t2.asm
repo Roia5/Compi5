@@ -25,10 +25,10 @@ _fun_:
 move $fp, $sp
 subu $fp, $fp, 4
 li $t0, 0
-subu $fp, $fp, 12
-sw $t0, ($fp)
-sw $t0, 4($fp)
-sw $t0, 8($fp)
+subu $sp, $sp, 12
+sw $t0, ($sp)
+sw $t0, 4($sp)
+sw $t0, 8($sp)
 label_24:
 li $t0, 1
 bge $t0, 3, labelOutOfRange
@@ -39,9 +39,9 @@ mul $t1, $t1, 4
 subu $t1, $fp, $t1
 lw $t1, ($t1)
 move $v0, $t1
-addu $sp, $sp, 12
+addu $sp, $sp, 16
 jr $ra
-addu $sp, $sp, 12
+addu $sp, $sp, 16
 jr $ra
 .end _fun_
 

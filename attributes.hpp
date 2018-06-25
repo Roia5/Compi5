@@ -23,6 +23,11 @@ enum stETypes { typeInt, typeByte, typeBool, typeVoid, typeString, TYPES_SIZE };
 #define ARR_MIN_SIZE 1
 #define ARR_MAX_SIZE 255
 
+struct ArrayType {
+	int offset;
+	int size;
+};
+
 class VarType {
 	protected:
 		string vType;
@@ -32,11 +37,14 @@ class VarType {
 		bool isNamed;
 		int intVal;
 		bool boolVal;
+		int arrOffset;
+		int arrSize;
 		string stringVal;
 		string stringLabel;
 		string reg;
 		string op;
 		vector<string> registerList;
+		vector<ArrayType> arrayArgs;
 		vector<int> trueList;
 		vector<int> falseList;
 		vector<int> nextList;
@@ -46,6 +54,10 @@ class VarType {
 		VarType(string varType, string name, int value) : vType(varType), name(name), intVal(value), isNamed(true) {}
 		VarType(string varType, string name, bool value) : vType(varType), name(name), boolVal(value), isNamed(true) {}
 		
+	int getArrOffset();
+	int getArrSize();
+	void setArrOffset(int arrOffset);
+	void setArrSize(int arrSize);
 	void setBoolVal(bool value);
 	
 	void setTrueList(vector<int> trueList);
@@ -105,7 +117,11 @@ class VarType {
 	void setName(string new_name);
 	
 	void addEntryKind(EntryKind kind);
-	
+
+	void addArrayArg(ArrayType t);
+
+	vector<ArrayType> getArrayArgs();
+
 	vector<EntryKind> getEntryKinds();
 	
 	void setEntryKinds(vector<EntryKind> vec);
@@ -145,6 +161,7 @@ class TEntry : public VarType{
 		void setOffset(int offset);
 		
 		int getOffset();
+		
 		
 		EntryKind getKind();
 
