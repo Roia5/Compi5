@@ -21,7 +21,7 @@
 	vector<bool> funcs_stack;
 
 	vector<int> ifFalseList;
-vector<int> ifExitList;
+	vector<int> ifExitList;
 	bool foundElse;
 	string elseLabel;
 	vector<int> elseNextList;
@@ -29,7 +29,7 @@ vector<int> ifExitList;
 	string while_true_nextLine;
 	int if_N_nextLine;
 	bool one_statement;
-string returnLabel;
+	string returnLabel;
 
 	vector<string> argument_list;
 	string expListReg;
