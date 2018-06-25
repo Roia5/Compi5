@@ -51,8 +51,9 @@
 %token VOID INT BYTE B BOOL TRUE FALSE RETURN WHILE BREAK SC COMMA LBRACE RBRACE ID NUM STRING 
 %left OR AND 
 %nonassoc RELOP_NORMAL
+%nonassoc RELOP_EQUAL
 %left LBRACK RBRACK LPAREN RPAREN BINOP_ADD
-%left BINOP_MULT RELOP_EQUAL
+%left BINOP_MULT
 %right ASSIGN NOT
 %nonassoc IF
 %nonassoc ELSE
@@ -773,8 +774,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															string reg1 = $1->getRegister();
 															string reg2 = $3->getRegister();
 															
-															if($2->getOp()=="+"){
-																
+															if($2->getOp()=="+") {
 																e.add(reg1,reg1,reg2);
 															}
 															else {
@@ -935,18 +935,20 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															
 															}
 
-		| Exp RELOP_EQUAL Exp 								{if(($1->getType() != "INT" && $1->getType() != "BYTE")
-																||($3->getType() != "INT" && $3->getType() != "BYTE")){
-																errorMismatch(yylineno); 
-																PopAllStacks();
-																exit(0);
-															}	
-															$$->setType("BOOL");
-															
-															int nextLine = e.ifInstruction($1->getRegister(), $3->getRegister(), $2->getOp());
-															$$->setTrueList(makelist(nextLine));
-															nextLine = e.gotoEmpty();
-															$$->setFalseList(makelist(nextLine));
+		| Exp RELOP_EQUAL Exp 								{
+																if(($1->getType() != "INT" && $1->getType() != "BYTE")
+																	||($3->getType() != "INT" && $3->getType() != "BYTE")){
+																		errorMismatch(yylineno);
+																		PopAllStacks();
+																		exit(0);
+																}
+																
+																$$->setType("BOOL");
+																
+																int nextLine = e.ifInstruction($1->getRegister(), $3->getRegister(), $2->getOp());
+																$$->setTrueList(makelist(nextLine));
+																nextLine = e.gotoEmpty();
+																$$->setFalseList(makelist(nextLine));
 															}
 ;
 
