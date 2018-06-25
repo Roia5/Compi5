@@ -50,11 +50,12 @@
 
 %token VOID INT BYTE B BOOL TRUE FALSE RETURN WHILE BREAK SC COMMA LBRACE RBRACE ID NUM STRING 
 %left OR AND 
+%right NOT
 %nonassoc RELOP_NORMAL
 %left RELOP_EQUAL
 %left LBRACK RBRACK LPAREN RPAREN BINOP_ADD
 %left BINOP_MULT
-%right ASSIGN NOT
+%right ASSIGN
 %nonassoc IF
 %nonassoc ELSE
 	
@@ -207,7 +208,8 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 																	e.pushRegister(reg);
 																}
 																else {
-																	//todo handle false var initialize
+																	e.li(reg,"0");
+																	e.pushRegister(reg);
 																}
 																
 																register_handler.returnRegisterToPool(reg);
