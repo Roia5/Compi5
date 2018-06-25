@@ -173,6 +173,8 @@ int InsertFunction(string Name, string type, vector<EntryKind> vecKinds, vector<
 
 int InsertFunction(string Name, string RetType, vector<TEntry> Args); 
 
+int getCurrentScopeSize();
+
 int StartScope();
 
 void ExitScope();

@@ -66,22 +66,6 @@ int __destroy_stacks() {
 	ExitScope(); //exit general scope
 }
 
-/*void PrintTopStack() {
-	for (int i = 0; i < tables_stack.back().size(); i++) {
-		TEntry curr_entry = tables_stack.back()[i];
-		if (curr_entry.getKind() == Var)
-			printID(curr_entry.getName(), curr_entry.getOffset(), curr_entry.getType());
-		
-		if (curr_entry.getKind() == Array)
-			cout << curr_entry.getName() << " " << makeArrayType(curr_entry.getType(), curr_entry.getArrSize()) << " " << curr_entry.getOffset() << "\n";;
-		
-		if (curr_entry.getKind() == Func) {
-			vector<string> args_types = getArgsTypes(curr_entry);
-			cout << curr_entry.getName() << " " <<  makeFunctionType(curr_entry.getType(), args_types) << " " << FUNCS_OFFSET << "\n";
-		}
-	}
-}*/
-
 int InsertVar(string Name, string Type, VarType* t) {
 	if (isIdentifierExists(Name)) {
 		errorDef(yylineno, Name);
@@ -96,6 +80,22 @@ int InsertVar(string Name, string Type, VarType* t) {
 	return 0;
 }
 
+int getCurrentScopeSize(){
+	vector<TEntry> currentScope = tables_stack.back();
+	int count = 0;
+	for(int i=0;i<currentScope.size();i++){
+		if(currentScope[i].getKind()==Var && currentScope[i].getOffset()>=0){
+			count++;
+		}
+		else if(currentScope[i].getKind()==Array && currentScope[i].getOffset()>=0){
+			count+=currentScope[i].getArrSize();
+		}
+		else {
+
+		}
+	}
+	return count;
+}
 int InsertArray(string Name, string Type, int Size) {
 	if (Size < ARR_MIN_SIZE || Size > ARR_MAX_SIZE) {
 		errorInvalidArraySize(yylineno, Name);

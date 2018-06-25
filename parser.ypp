@@ -100,7 +100,9 @@ FuncDecl :		RetType ID LPAREN Formals RPAREN {
 																				//string end_label = e.getEndMainLabel();
 																				CodeBuffer::instance().bpatch($8->getNextList(),returnLabel);
 																			}*/
+																			e.removeStackAfterScope(getCurrentScopeSize());
 																			ExitScope();
+																			
 																			e.funcEnd($2->getName());
 																			}
 																			
@@ -185,7 +187,8 @@ Statements :		Statement	{$$->setNextList($1->getNextList()); one_statement = tru
 		 Statement {$$->setNextList($3->getNextList()); one_statement = false;}	
 ;
  
-Statement :		LBRACE {StartScope();} Statements {ExitScope(); 
+Statement :		LBRACE {StartScope();} Statements {e.removeStackAfterScope(getCurrentScopeSize()); 
+																ExitScope(); 
 																vector<int> list = $3->getNextList(); 
 																
 																$$->setNextList(list);
@@ -418,6 +421,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 				exit(0);
 			}
 			returnTypeFound = "VOID";
+			e.removeStackAfterScope(getCurrentScopeSize());
 			e.jr();
 		}
 		| RETURN Exp SC {
@@ -459,6 +463,7 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 			}
 			e.mov("$v0",reg);
 			register_handler.returnRegisterToPool(reg);
+			e.removeStackAfterScope(getCurrentScopeSize());
 			e.jr();
 		}
 		| IF  LPAREN Exp RPAREN {
@@ -558,7 +563,7 @@ Call :		ID LPAREN ExpList
 				e.onFunctionCall($1->getName(),argument_list);
 				returnLabel = CodeBuffer::instance().genLabel();
 				old3 = $3->getType();
-			} RPAREN						{				
+			} RPAREN						{				//e.removeStackAfterScope(getCurrentScopeSize());
 															e.onFunctionReturn(argument_list);
 															for(int i=0;i<argument_list.size();i++){
 																register_handler.returnRegisterToPool(argument_list[i]);

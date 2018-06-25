@@ -61,6 +61,15 @@ class emitter {
 				popRegister(regIndexToName(i));
 			}
 		}
+		void removeStackAfterScope(int numElements){
+			if(numElements==0){
+				return;
+			}
+			else if(numElements<0){
+				cout << "problem in removeStackAfterScope" << endl;
+			}
+			add(sp_reg,sp_reg,numberToString(4*numElements));
+    	}
 		string getEndMainLabel(){
 			return endMainLabel;
 		}
@@ -94,11 +103,18 @@ class emitter {
 		}
 		
 		void initArray(string reg, int length){
+			sub(sp_reg,sp_reg,numberToString(length*STACK_ENTRY_SIZE));
+			sw(reg, parent_reg(fp_reg));
+			for(int i=1;i<length;i++){
+				sw(reg,numberToString((-1)*i*STACK_ENTRY_SIZE) + parent_reg(sp_reg));
+			}
+			/*
 			sub(fp_reg,fp_reg,numberToString(length*STACK_ENTRY_SIZE));
 			sw(reg, parent_reg(fp_reg));
 			for(int i=1;i<length;i++){
 				sw(reg,numberToString(i*STACK_ENTRY_SIZE) + parent_reg(fp_reg));
 			}
+			*/
 		}
 		
 		void loadVariable(string rdest, int offset){
