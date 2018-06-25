@@ -272,7 +272,8 @@ Statement :		LBRACE {StartScope();} Statements {ExitScope();
 																	e.initArray(reg,$4->getIntVal());
 																}
 																else {
-																	//TODO: handle false array initialize
+																	e.li(reg,"0");
+																	e.initArray(reg,$4->getIntVal());
 																}
 																
 																register_handler.returnRegisterToPool(reg);
