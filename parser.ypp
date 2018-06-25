@@ -246,7 +246,7 @@ Statement :		LBRACE {StartScope();} Statements {e.removeStackAfterScope(getCurre
 																		reg = register_handler.getAvailReg();
 																		e.booleanRegisterHandle(reg, $4->getTrueList(), $4->getFalseList());
 																		e.storeVariable(reg,t->getOffset());
-																	}
+																}
 																register_handler.returnRegisterToPool(reg);
 																
 																}
@@ -359,15 +359,15 @@ Statement :		LBRACE {StartScope();} Statements {e.removeStackAfterScope(getCurre
 																	if(t->getType()=="INT" || t->getType()=="BYTE"){
 																		reg = $3->getRegister();
 																		e.storeVariable(reg, t->getOffset());
+																		
 																	}
 																	else if(t->getType()=="BOOL"){
 																		reg = register_handler.getAvailReg();
 																		e.booleanRegisterHandle(reg, $3->getTrueList(), $3->getFalseList());
 																		e.storeVariable(reg,t->getOffset());
+																		
 																	}
-																
 																	register_handler.returnRegisterToPool(reg);
-																	
 																}
 														
 																}
@@ -409,9 +409,20 @@ Statement :		LBRACE {StartScope();} Statements {e.removeStackAfterScope(getCurre
 																	e.add(resreg, resreg, $3->getRegister());
 																	e.mul(resreg, resreg, numberToString(STACK_ENTRY_SIZE));
 																	e.sub(resreg, fp_reg, resreg);
-																	e.sw($6->getRegister(), "(" + resreg + ")");
-																	
+																	if(t->getType()!="BOOL"){
+																		e.sw($6->getRegister(), "(" + resreg + ")");
+																		register_handler.returnRegisterToPool($6->getRegister());
+																	}
+																	else {
+																		string reg = register_handler.getAvailReg();
+																		e.booleanRegisterHandle(reg, $6->getTrueList(), $6->getFalseList());
+																		//e.storeVariable(resreg,t->getOffset());
+																		e.sw(reg, "(" + resreg + ")");
+																		register_handler.returnRegisterToPool(reg);
+																	}
 																	register_handler.returnRegisterToPool(resreg);
+																	register_handler.returnRegisterToPool($3->getRegister());
+																	
 																}
 		| Call SC
 		| RETURN SC {
@@ -732,11 +743,21 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															e.mul(resreg, resreg, numberToString(STACK_ENTRY_SIZE));
 															e.sub(resreg, fp_reg, resreg);
 															e.lw(resreg, "(" + resreg + ")");
-															//register_handler.returnRegisterToPool(resreg);	
-															$$->setRegister(resreg);
+															//register_handler.returnRegisterToPool(resreg);
+															if(t->getType()!="BOOL"){
+																$$->setRegister(resreg);
+															}	
+															else {
+																int line = e.bne(resreg, "0");
+																$$->setTrueList(makelist(line));
+																int nextLine = e.gotoEmpty();
+																$$->setFalseList(makelist(nextLine));
+																register_handler.returnRegisterToPool(resreg);
+															}
+															
 															$$->setName($1->getName() + "[]");	
 															$$->setType(t->getType());
-															
+															register_handler.returnRegisterToPool($3->getRegister());
 															}
 		| Exp BINOP_MULT Exp								{
 															
