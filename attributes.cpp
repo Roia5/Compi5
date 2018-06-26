@@ -3,7 +3,7 @@
 
 vector <vector<TEntry> > tables_stack;
 vector <int> offsets_stack;
-
+int prevScopeSize;
 int printi = 0;
 extern int yylineno;
 string stTypes[TYPES_SIZE]; //TBD: ask roey if he needs aliases in parser/scanner, and if so move to hpp
@@ -80,6 +80,9 @@ int InsertVar(string Name, string Type, VarType* t) {
 	return 0;
 }
 
+int getPreviousScopeSize(){
+	return prevScopeSize;
+}
 int getCurrentScopeSize(){
 	vector<TEntry> currentScope = tables_stack.back();
 	int count = 0;
@@ -198,9 +201,28 @@ int StartScope() {
 	return 0;
 }
 
+int getNumOfScopes(){
+	return tables_stack.size();
+}
+void PrintTopStack() {
+	for (int i = 0; i < tables_stack.back().size(); i++) {
+		TEntry curr_entry = tables_stack.back()[i];
+		if (curr_entry.getKind() == Var)
+			printID(curr_entry.getName(), curr_entry.getOffset(), curr_entry.getType());
+		
+		if (curr_entry.getKind() == Array)
+			cout << curr_entry.getName() << " " << makeArrayType(curr_entry.getType(), curr_entry.getArrSize()) << " " << curr_entry.getOffset() << "\n";;
+		
+		if (curr_entry.getKind() == Func) {
+			vector<string> args_types = getArgsTypes(curr_entry);
+			cout << curr_entry.getName() << " " <<  makeFunctionType(curr_entry.getType(), args_types) << " " << FUNCS_OFFSET << "\n";
+		}
+	}
+}
 void ExitScope() {
 	//endScope();
 	//PrintTopStack();
+	prevScopeSize = getCurrentScopeSize();
 	PopStacks();
 }
 
@@ -465,6 +487,12 @@ void VarType::setIntVal(int value){
 	this->intVal = value;
 }
 
+void VarType::setCurly(bool val){
+	this->isCurly = val;
+}
+bool VarType::getCurly(){
+	return this->isCurly;
+}
 int VarType::getIntVal(){
 	return this->intVal;
 }

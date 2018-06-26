@@ -49,18 +49,21 @@ class VarType {
 		vector<int> falseList;
 		vector<int> nextList;
 		vector<int> whileList;
+		bool isCurly;
 	public:
-		VarType() : reg(""){}
-		VarType(string varType, string name) : reg(""), vType(varType), name(name), isNamed(true) {}
-		VarType(string varType, string name, int value) : reg(""), vType(varType), name(name), intVal(value), isNamed(true) {}
-		VarType(string varType, string name, bool value) : reg(""), vType(varType), name(name), boolVal(value), isNamed(true) {}
+		VarType() : reg("") , isCurly(false) {}
+		VarType(string varType, string name) : reg(""), isCurly(false), vType(varType), name(name), isNamed(true) {}
+		VarType(string varType, string name, int value) : reg(""),isCurly(false), vType(varType), name(name), intVal(value), isNamed(true) {}
+		VarType(string varType, string name, bool value) : reg(""),isCurly(false), vType(varType), name(name), boolVal(value), isNamed(true) {}
 		
 	int getArrOffset();
 	int getArrSize();
 	void setArrOffset(int arrOffset);
 	void setArrSize(int arrSize);
 	void setBoolVal(bool value);
-	
+	void setCurly(bool val);
+	bool getCurly();
+
 	void setTrueList(vector<int> trueList);
 	
 	void setWhileList(vector<int> whileList);
@@ -194,10 +197,11 @@ int InsertArray(string Name, string Type, int Size);
 int InsertFunction(string Name, string type, vector<EntryKind> vecKinds, vector<string> vecNames);
 
 int InsertFunction(string Name, string RetType, vector<TEntry> Args); 
-
+int getPreviousScopeSize();
 int getCurrentScopeSize();
-
+//void PrintTopStack();
 int StartScope();
+int getNumOfScopes();
 
 void ExitScope();
 

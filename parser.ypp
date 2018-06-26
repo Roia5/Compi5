@@ -31,6 +31,7 @@
 	bool one_statement;
 	string returnLabel;
 
+	//bool is_statement_curly = false;
 	vector<string> argument_list;
 	vector<ArrayType> array_arg_list;
 	string expListReg;
@@ -73,10 +74,13 @@ Funcs :		/*epsilon*/
 
 FuncDecl :		RetType ID LPAREN Formals RPAREN {
 													e.funcStart($2->getName());
-													
+													//cout << "function " << $2->getName() << "has scopes : " << getNumOfScopes() << endl;
 													
 													string returnType = $1->getType()+"_"+$4->getType();
+													//cout << "FuncDecl0 scopes : " << getNumOfScopes() << endl;
 													InsertFunction($2->getName(), returnType,$4->getEntryKinds(), $4->getArgNames());
+													//cout << "FuncDecl1 scopes : " << getNumOfScopes() << endl;
+													//cout << "FuncDecl2 scopes : " << getNumOfScopes() << endl;
 													$2->setType(returnType);
 													dynamic_cast<TEntry*>($2)->setKind(Func);
 													if(returnType == "VOID_VOID" && $2->getName()=="main"){
@@ -97,13 +101,11 @@ FuncDecl :		RetType ID LPAREN Formals RPAREN {
 																					}
 																				}
 																				returnTypeFound = "return not done";
-																			/*if(one_statement){
-																				//string end_label = e.getEndMainLabel();
-																				CodeBuffer::instance().bpatch($8->getNextList(),returnLabel);
-																			}*/
 																			e.removeStackAfterScope(getCurrentScopeSize());
+																			//cout << "6 functionEnd of " << $2->getName() << endl;
+																			//					PrintTopStack();
 																			ExitScope();
-																			
+																			//cout << "Exit : function " << $2->getName() << "has scopes : " << getNumOfScopes() << endl;
 																			e.funcEnd($2->getName());
 																			}
 																			
@@ -196,12 +198,16 @@ Statements :		Statement	{$$->setNextList($1->getNextList()); one_statement = tru
 					 }	//todo check	
 ;
  
-Statement :		LBRACE {StartScope();} Statements {		
-																if($3->getWhileList().size()==0 || !while_stack.back()){
+Statement :		LBRACE {StartScope(); 
+					} Statements {		
+																//cout << "while_stack.back : " << while_stack.back() << endl;
+																//cout << "$3->getWhileList().size() : " << $3->getWhileList().size() << endl;
+																if(while_stack.back()){
 																	e.removeStackAfterScope(getCurrentScopeSize()); 
-																	ExitScope(); 
+																	//cout << "5 curly statement" << endl;
+																	//					PrintTopStack();
 																}
-																
+																ExitScope(); 
 																vector<int> list = $3->getNextList(); 
 																
 																$$->setNextList(list);
@@ -211,7 +217,7 @@ Statement :		LBRACE {StartScope();} Statements {
 																vector<int> l = $3->getWhileList();
 																//cout << "55" << endl;
 																//cout << "size : " << l.size() << endl;
-
+																$$->setCurly(true);
 																$$->setWhileList(l);}
 		| Type ID SC											{
 																if(isIdentifierExists($2->getName())){
@@ -513,13 +519,19 @@ Statement :		LBRACE {StartScope();} Statements {
 			CodeBuffer::instance().bpatch($3->getTrueList(),newLabel);
 			
 			} 
-		Statement {	e.removeStackAfterScope(getCurrentScopeSize()); ExitScope();} 
+		Statement {	if($6->getCurly()){
+						//cout << "here" << endl;
+						e.removeStackAfterScope(getPreviousScopeSize());
+		  }
+		  else {
+			  e.removeStackAfterScope(getCurrentScopeSize());
+		  }  ExitScope();} 
 		ElsePart {
 
 			if(foundElse){
 				string lab = CodeBuffer::instance().genLabel();
 				CodeBuffer::instance().bpatch(ifExitList,lab);
-				//cout << "6" << endl;
+				
 				$$->setWhileList(CodeBuffer::instance().merge($6->getWhileList(),$8->getWhileList()));
 			}
 			else {
@@ -527,7 +539,7 @@ Statement :		LBRACE {StartScope();} Statements {
 				//$3->getFalseList()
 				string nextLine = CodeBuffer::instance().genLabel();
 				CodeBuffer::instance().bpatch($3->getFalseList(),nextLine);
-				//cout << "7" << endl;
+				
 				$$->setWhileList($6->getWhileList());	//todo check
 			}
 			foundElse = false;
@@ -547,9 +559,10 @@ Statement :		LBRACE {StartScope();} Statements {
 					}
 		
 					while_true_nextLine = CodeBuffer::instance().genLabel();
-					//cout << "while_true_nextLine :" << while_true_nextLine << endl;					
+									
 					while_stack.push_back(true); 
 					StartScope();
+					
 				} 
 				Statement
 				{
@@ -560,24 +573,26 @@ Statement :		LBRACE {StartScope();} Statements {
 						PopAllStacks();
 						exit(0);
 					}
-					//cout << "size4 :" << $7->getWhileList().size() << endl;
-						
 					
 					CodeBuffer::instance().emit("j " + while_start_nextLine);
 					CodeBuffer::instance().bpatch($4->getTrueList(),while_true_nextLine);
 					
-					string while_end_nextLine = CodeBuffer::instance().genLabel();
-										//cout << "scope size - " << getCurrentScopeSize() << endl;
-						e.removeStackAfterScope(getCurrentScopeSize()); 
-						ExitScope();
-					string while_end_bad_nextLine = CodeBuffer::instance().genLabel();
+					string while_end_nextLine = CodeBuffer::instance().genLabel();				
+					if($7->getCurly()){
+						e.removeStackAfterScope(getPreviousScopeSize());
+					}
+					else {
+						e.removeStackAfterScope(getCurrentScopeSize());
+					}
+								
 
-					//cout << "while_end_nextLine :" << while_end_nextLine << endl;	
+					string while_end_bad_nextLine = CodeBuffer::instance().genLabel();
+					ExitScope();
+					
 					CodeBuffer::instance().bpatch($7->getWhileList(),while_end_nextLine);
 					CodeBuffer::instance().bpatch($4->getFalseList(),while_end_bad_nextLine);
 					CodeBuffer::instance().bpatch($7->getNextList(),while_start_nextLine);
-					//cout << "8" << endl;
-					//$$->setNextList($4->getFalseList());
+					
 				}
 				
 		| BREAK SC	{
@@ -587,8 +602,7 @@ Statement :		LBRACE {StartScope();} Statements {
 							exit(0);
 						}
 						int line = e.gotoEmpty();
-						//cout << "line :" << line << endl;	
-						//cout << "1" << endl;
+						
 						$$->setWhileList(makelist(line));
 					}
 ;
@@ -605,7 +619,12 @@ ElsePart :		/*epsilon*/ %prec IF
 			CodeBuffer::instance().bpatch(ifFalseList,elseLabel);
 								
 			}
-		Statement {e.removeStackAfterScope(getCurrentScopeSize()); ExitScope();// cout << "2" << endl; 
+		Statement {if($3->getCurly()){
+						e.removeStackAfterScope(getPreviousScopeSize());
+		  }
+		  else {
+			  e.removeStackAfterScope(getCurrentScopeSize());
+		  } ExitScope(); 
 		$$->setWhileList($3->getWhileList());
 		elseNextList = $3->getNextList();} %prec ELSE
 
@@ -635,6 +654,7 @@ Call :		ID LPAREN ExpList
 																	string temps = $1->getName();
 																	vector<string> tempv;
 																	tempv.push_back("STRING");
+																	
 																	errorPrototypeMismatch(yylineno, temps, tempv);
 																	PopAllStacks();
 																	exit(0);
@@ -646,6 +666,7 @@ Call :		ID LPAREN ExpList
 																	string temps = $1->getName();
 																	vector<string> tempv;
 																	tempv.push_back("INT");
+																	
 																	errorPrototypeMismatch(yylineno, temps, tempv);
 																	PopAllStacks();
 																	exit(0);
@@ -672,6 +693,7 @@ Call :		ID LPAREN ExpList
 																			vecTypes.push_back(vecEntry[i].getType());
 																		}
 																}
+																
 																errorPrototypeMismatch(yylineno, $1->getName(), vecTypes); 
 																PopAllStacks();
 																exit(0);
@@ -709,6 +731,7 @@ Call :		ID LPAREN ExpList
 																		vecTypes.push_back(vecEntry[i].getType());
 																	}
 																}
+																
 																errorPrototypeMismatch(yylineno, $1->getName(), vecTypes); 
 																PopAllStacks();
 																exit(0);
@@ -906,7 +929,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															$$->setName($1->getName());
 															TEntry* t = findByID($1->getName());
 															string reg = register_handler.getAvailReg();
-															//cout << "offset - " << t->getOffset() << endl;;
+															
 															e.loadVariable(reg,t->getOffset());
 															if(t->getKind() == Array){
 																$$->setType(t->getType() + "[" + numberToString(t->getArrSize()) + "]"); 
