@@ -451,6 +451,16 @@ string VarType::getOp(){
 	return this->op;
 }
 
+void VarType::setWhileList(vector<int> whileList){
+	if(whileList.size()!=0){
+		this->whileList = whileList;
+	}
+}
+
+vector<int> VarType::getWhileList(){
+	return this->whileList;
+}
+	
 void VarType::setIntVal(int value){
 	this->intVal = value;
 }

@@ -48,6 +48,7 @@ class VarType {
 		vector<int> trueList;
 		vector<int> falseList;
 		vector<int> nextList;
+		vector<int> whileList;
 	public:
 		VarType() {}
 		VarType(string varType, string name) : vType(varType), name(name), isNamed(true) {}
@@ -62,6 +63,10 @@ class VarType {
 	
 	void setTrueList(vector<int> trueList);
 	
+	void setWhileList(vector<int> whileList);
+
+	vector<int> getWhileList();
+
 	void setStringVal(string val);
 	
 	void setStringLabel(string label);

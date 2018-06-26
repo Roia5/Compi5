@@ -180,11 +180,20 @@ FormalDecl :		Type ID										{$$->setType($1->getType());
 																$$->addArgName($2->getName());}
 ;
 
-Statements :		Statement	{$$->setNextList($1->getNextList()); one_statement = true;}
+Statements :		Statement	{$$->setNextList($1->getNextList()); one_statement = true;
+//cout << "3" << endl;
+								if($1->getWhileList().size()!=0){
+									$$->setWhileList($1->getWhileList());
+								}
+								}
 		| Statements {
 					string newLabel = CodeBuffer::instance().genLabel();
 					CodeBuffer::instance().bpatch($1->getNextList(),newLabel);}
-		 Statement {$$->setNextList($3->getNextList()); one_statement = false;}	
+		 Statement {$$->setNextList($3->getNextList()); one_statement = false;
+		 			//cout << "4" << endl;
+		 			$$->setWhileList(merge($1->getWhileList(),$3->getWhileList()));
+					//cout << "size3 :" << $$->getWhileList().size() << endl;
+					 }	//todo check	
 ;
  
 Statement :		LBRACE {StartScope();} Statements {e.removeStackAfterScope(getCurrentScopeSize()); 
@@ -193,7 +202,13 @@ Statement :		LBRACE {StartScope();} Statements {e.removeStackAfterScope(getCurre
 																
 																$$->setNextList(list);
 																
-																} RBRACE
+																//$$->setWhileList($3->getWhileList());
+																} RBRACE {//cout << "5" << endl;
+																vector<int> l = $3->getWhileList();
+																//cout << "55" << endl;
+																//cout << "size : " << l.size() << endl;
+
+																$$->setWhileList(l);}
 		| Type ID SC											{
 																if(isIdentifierExists($2->getName())){
 																	errorDef(yylineno, $2->getName());
@@ -500,12 +515,16 @@ Statement :		LBRACE {StartScope();} Statements {e.removeStackAfterScope(getCurre
 			if(foundElse){
 				string lab = CodeBuffer::instance().genLabel();
 				CodeBuffer::instance().bpatch(ifExitList,lab);
+				//cout << "6" << endl;
+				$$->setWhileList(CodeBuffer::instance().merge($6->getWhileList(),$8->getWhileList()));
 			}
 			else {
 				//$$->setNextList(merge($3->getFalseList(),$6->getNextList()));
 				//$3->getFalseList()
 				string nextLine = CodeBuffer::instance().genLabel();
 				CodeBuffer::instance().bpatch($3->getFalseList(),nextLine);
+				//cout << "7" << endl;
+				$$->setWhileList($6->getWhileList());	//todo check
 			}
 			foundElse = false;
 		}
@@ -522,9 +541,9 @@ Statement :		LBRACE {StartScope();} Statements {e.removeStackAfterScope(getCurre
 						PopAllStacks();
 						exit(0);
 					}
-													
+		
 					while_true_nextLine = CodeBuffer::instance().genLabel();
-					
+					//cout << "while_true_nextLine :" << while_true_nextLine << endl;					
 					while_stack.push_back(true); StartScope();
 				} 
 				Statement
@@ -536,15 +555,17 @@ Statement :		LBRACE {StartScope();} Statements {e.removeStackAfterScope(getCurre
 						PopAllStacks();
 						exit(0);
 					}
-						
+					//cout << "size4 :" << $7->getWhileList().size() << endl;
 					ExitScope();
 					CodeBuffer::instance().emit("j " + while_start_nextLine);
 					CodeBuffer::instance().bpatch($4->getTrueList(),while_true_nextLine);
 					
 					string while_end_nextLine = CodeBuffer::instance().genLabel();
+					//cout << "while_end_nextLine :" << while_end_nextLine << endl;	
+					CodeBuffer::instance().bpatch($7->getWhileList(),while_end_nextLine);
 					CodeBuffer::instance().bpatch($4->getFalseList(),while_end_nextLine);
 					CodeBuffer::instance().bpatch($7->getNextList(),while_start_nextLine);
-					
+					//cout << "8" << endl;
 					//$$->setNextList($4->getFalseList());
 				}
 				
@@ -554,6 +575,10 @@ Statement :		LBRACE {StartScope();} Statements {e.removeStackAfterScope(getCurre
 							PopAllStacks();
 							exit(0);
 						}
+						int line = e.gotoEmpty();
+						//cout << "line :" << line << endl;	
+						//cout << "1" << endl;
+						$$->setWhileList(makelist(line));
 					}
 ;
 ElsePart :		/*epsilon*/ %prec IF
@@ -569,8 +594,10 @@ ElsePart :		/*epsilon*/ %prec IF
 			CodeBuffer::instance().bpatch(ifFalseList,elseLabel);
 								
 			}
-		Statement {ExitScope();
+		Statement {ExitScope();// cout << "2" << endl; 
+		$$->setWhileList($3->getWhileList());
 		elseNextList = $3->getNextList();} %prec ELSE
+
 ;
 Call :		ID LPAREN ExpList
 			{ 
