@@ -716,7 +716,14 @@ ExpList :		Exp											{
 																//register_handler.returnRegisterToPool(reg);
 															}
 															else if($1->getType()=="BOOL"){
-																string reg = register_handler.getAvailReg();
+																string reg;
+																if($1->getRegister()==""){
+																	reg = register_handler.getAvailReg();
+																}
+																else {
+																	reg = $1->getRegister();
+																}
+																
 																e.booleanRegisterHandle(reg, $1->getTrueList(), $1->getFalseList());
 																$$->addRegisterToList(reg);
 															}
@@ -733,8 +740,12 @@ ExpList :		Exp											{
 															
 															}
 		| Exp COMMA {										if($1->getType()=="BOOL"){
-																
-																expListReg = register_handler.getAvailReg();
+																if($1->getRegister()==""){
+																	expListReg = register_handler.getAvailReg();
+																}
+																else {
+																	expListReg = $1->getRegister();
+																}
 																e.booleanRegisterHandle(expListReg, $1->getTrueList(), $1->getFalseList());
 																
 															}
@@ -910,7 +921,15 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 		| Call												{$$->setType($1->getType());
 															string reg = register_handler.getAvailReg();
 															e.mov(reg,"$v0");
+															if($1->getType()=="BOOL"){
+																
+																int line = e.bne(reg, "0");
+																$$->setTrueList(makelist(line));
+																int nextLine = e.gotoEmpty();
+																$$->setFalseList(makelist(nextLine));
+															}
 															$$->setRegister(reg);
+
 		
 		}
 		| NUM												{$$->setType("INT");

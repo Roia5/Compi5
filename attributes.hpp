@@ -50,10 +50,10 @@ class VarType {
 		vector<int> nextList;
 		vector<int> whileList;
 	public:
-		VarType() {}
-		VarType(string varType, string name) : vType(varType), name(name), isNamed(true) {}
-		VarType(string varType, string name, int value) : vType(varType), name(name), intVal(value), isNamed(true) {}
-		VarType(string varType, string name, bool value) : vType(varType), name(name), boolVal(value), isNamed(true) {}
+		VarType() : reg(""){}
+		VarType(string varType, string name) : reg(""), vType(varType), name(name), isNamed(true) {}
+		VarType(string varType, string name, int value) : reg(""), vType(varType), name(name), intVal(value), isNamed(true) {}
+		VarType(string varType, string name, bool value) : reg(""), vType(varType), name(name), boolVal(value), isNamed(true) {}
 		
 	int getArrOffset();
 	int getArrSize();
