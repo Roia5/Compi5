@@ -30,6 +30,7 @@
 	int if_N_nextLine;
 	bool one_statement;
 	string returnLabel;
+	bool inIfOrElse = false;
 
 	//bool is_statement_curly = false;
 	vector<string> argument_list;
@@ -51,7 +52,8 @@
 %}
 
 %token VOID INT BYTE B BOOL TRUE FALSE RETURN WHILE BREAK SC COMMA LBRACE RBRACE ID NUM STRING 
-%left OR AND 
+%left OR 
+%left AND 
 %right NOT
 %nonassoc RELOP_NORMAL
 %left RELOP_EQUAL
@@ -202,7 +204,7 @@ Statement :		LBRACE {StartScope();
 					} Statements {		
 																//cout << "while_stack.back : " << while_stack.back() << endl;
 																//cout << "$3->getWhileList().size() : " << $3->getWhileList().size() << endl;
-																if(while_stack.back()){
+																if(!while_stack.back() && !inIfOrElse){
 																	e.removeStackAfterScope(getCurrentScopeSize()); 
 																	//cout << "5 curly statement" << endl;
 																	//					PrintTopStack();
@@ -513,6 +515,7 @@ Statement :		LBRACE {StartScope();
 				PopAllStacks();
 				exit(0);
 			}
+			inIfOrElse = true;
 			StartScope();
 			ifFalseList = $3->getFalseList();
 			string newLabel = CodeBuffer::instance().genLabel();
@@ -543,6 +546,7 @@ Statement :		LBRACE {StartScope();
 				$$->setWhileList($6->getWhileList());	//todo check
 			}
 			foundElse = false;
+			inIfOrElse = false;
 		}
 		
 		| WHILE 
