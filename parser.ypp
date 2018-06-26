@@ -884,6 +884,7 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															$$->setName($1->getName());
 															TEntry* t = findByID($1->getName());
 															string reg = register_handler.getAvailReg();
+															//cout << "offset - " << t->getOffset() << endl;;
 															e.loadVariable(reg,t->getOffset());
 															if(t->getKind() == Array){
 																$$->setType(t->getType() + "[" + numberToString(t->getArrSize()) + "]"); 

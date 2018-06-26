@@ -40,7 +40,10 @@ class emitter {
 			}
 			pushRegister(fp_reg);
 			pushRegister(ra_reg);
-			for(int i = 0; i < argumentRegs.size(); i++){
+			/*for(int i = 0; i < argumentRegs.size(); i++){
+				pushRegister(argumentRegs[i]);
+			}*/
+			for(int i = argumentRegs.size()-1; i >=0; i--){
 				pushRegister(argumentRegs[i]);
 			}
 			pushArrayArgs(reg, arrayArgs);
@@ -49,7 +52,10 @@ class emitter {
 		}
 		void onFunctionReturn(vector<string> argumentRegs, vector<ArrayType> arrayArgs){
 			popArrayArgs(arrayArgs);
-			for(int i=0;i<argumentRegs.size();i++){
+			/*for(int i=0;i<argumentRegs.size();i++){
+				popRegister(argumentRegs[i]);
+			}*/
+			for(int i = 0; i < argumentRegs.size(); i++){
 				popRegister(argumentRegs[i]);
 			}
 			popRegister(ra_reg);
