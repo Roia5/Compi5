@@ -548,7 +548,8 @@ Statement :		LBRACE {StartScope();} Statements {
 		
 					while_true_nextLine = CodeBuffer::instance().genLabel();
 					//cout << "while_true_nextLine :" << while_true_nextLine << endl;					
-					while_stack.push_back(true); StartScope();
+					while_stack.push_back(true); 
+					StartScope();
 				} 
 				Statement
 				{
@@ -566,12 +567,14 @@ Statement :		LBRACE {StartScope();} Statements {
 					CodeBuffer::instance().bpatch($4->getTrueList(),while_true_nextLine);
 					
 					string while_end_nextLine = CodeBuffer::instance().genLabel();
-					//cout << "scope size - " << getCurrentScopeSize() << endl;
+										//cout << "scope size - " << getCurrentScopeSize() << endl;
 						e.removeStackAfterScope(getCurrentScopeSize()); 
 						ExitScope();
+					string while_end_bad_nextLine = CodeBuffer::instance().genLabel();
+
 					//cout << "while_end_nextLine :" << while_end_nextLine << endl;	
 					CodeBuffer::instance().bpatch($7->getWhileList(),while_end_nextLine);
-					CodeBuffer::instance().bpatch($4->getFalseList(),while_end_nextLine);
+					CodeBuffer::instance().bpatch($4->getFalseList(),while_end_bad_nextLine);
 					CodeBuffer::instance().bpatch($7->getNextList(),while_start_nextLine);
 					//cout << "8" << endl;
 					//$$->setNextList($4->getFalseList());
