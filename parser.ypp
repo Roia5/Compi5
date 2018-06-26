@@ -196,8 +196,12 @@ Statements :		Statement	{$$->setNextList($1->getNextList()); one_statement = tru
 					 }	//todo check	
 ;
  
-Statement :		LBRACE {StartScope();} Statements {e.removeStackAfterScope(getCurrentScopeSize()); 
-																ExitScope(); 
+Statement :		LBRACE {StartScope();} Statements {		
+																if($3->getWhileList().size()==0 || !while_stack.back()){
+																	e.removeStackAfterScope(getCurrentScopeSize()); 
+																	ExitScope(); 
+																}
+																
 																vector<int> list = $3->getNextList(); 
 																
 																$$->setNextList(list);
@@ -509,7 +513,7 @@ Statement :		LBRACE {StartScope();} Statements {e.removeStackAfterScope(getCurre
 			CodeBuffer::instance().bpatch($3->getTrueList(),newLabel);
 			
 			} 
-		Statement {ExitScope();	} 
+		Statement {	e.removeStackAfterScope(getCurrentScopeSize()); ExitScope();} 
 		ElsePart {
 
 			if(foundElse){
@@ -556,11 +560,15 @@ Statement :		LBRACE {StartScope();} Statements {e.removeStackAfterScope(getCurre
 						exit(0);
 					}
 					//cout << "size4 :" << $7->getWhileList().size() << endl;
-					ExitScope();
+						
+					
 					CodeBuffer::instance().emit("j " + while_start_nextLine);
 					CodeBuffer::instance().bpatch($4->getTrueList(),while_true_nextLine);
 					
 					string while_end_nextLine = CodeBuffer::instance().genLabel();
+					//cout << "scope size - " << getCurrentScopeSize() << endl;
+						e.removeStackAfterScope(getCurrentScopeSize()); 
+						ExitScope();
 					//cout << "while_end_nextLine :" << while_end_nextLine << endl;	
 					CodeBuffer::instance().bpatch($7->getWhileList(),while_end_nextLine);
 					CodeBuffer::instance().bpatch($4->getFalseList(),while_end_nextLine);
@@ -594,7 +602,7 @@ ElsePart :		/*epsilon*/ %prec IF
 			CodeBuffer::instance().bpatch(ifFalseList,elseLabel);
 								
 			}
-		Statement {ExitScope();// cout << "2" << endl; 
+		Statement {e.removeStackAfterScope(getCurrentScopeSize()); ExitScope();// cout << "2" << endl; 
 		$$->setWhileList($3->getWhileList());
 		elseNextList = $3->getNextList();} %prec ELSE
 
