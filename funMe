@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rm -f lex..y.c
+rm -f lex.yy.c
 rm -f parser.tab.*pp
 rm -f hw5
 flex scanner.lex
@@ -396,3 +396,7 @@ else
 fi
 
 printSummary
+
+rm -f lex.yy.c
+rm -f parser.tab.*pp
+rm -f hw5

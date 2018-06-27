@@ -50,18 +50,20 @@
 	#endif
 %}
 
-%token VOID INT BYTE B BOOL TRUE FALSE RETURN WHILE BREAK SC COMMA LBRACE RBRACE ID NUM STRING 
+%token VOID INT BYTE B BOOL
+%right ASSIGN
 %left OR
 %left AND
 %right NOT
+%token TRUE FALSE RETURN WHILE BREAK SC COMMA
 %nonassoc RELOP_NORMAL
 %left RELOP_EQUAL
-%left LBRACK RBRACK LPAREN RPAREN BINOP_ADD
+%left LBRACK RBRACK LPAREN RPAREN LBRACE RBRACE
+%left BINOP_ADD
 %left BINOP_MULT
-%right ASSIGN
 %nonassoc IF
 %nonassoc ELSE
-	
+%token ID NUM STRING
 
 %%
 
@@ -261,7 +263,7 @@ Statement :		LBRACE
 																		PopAllStacks();
 																		exit(0);
 																	}	
-																}//script killer
+																}
 																$2->setType($1->getType());
 																dynamic_cast<TEntry*>($2)->setKind(Var);
 																InsertVar($2->getName(),$1->getType(),$2);
@@ -405,61 +407,63 @@ Statement :		LBRACE
 
 																
 
-		| ID LBRACK Exp RBRACK ASSIGN Exp SC					{
-																	if($3->getType()!="BYTE" && $3->getType()!="INT") {
-																		errorMismatch(yylineno);
-																		PopAllStacks();
-																		exit(0);
-																	}
-																	
-																	TEntry* t = findByID($1->getName());
-																	if(!t){
-																		errorUndef(yylineno, $1->getName());
-																		PopAllStacks();
-																		exit(0);
-																	}
-																	
-																	if(t->getKind() != Array){
-																		errorMismatch(yylineno);
-																		PopAllStacks();
-																		exit(0);
-																	}
-																	
-																	if((t->getType() != $6->getType())&&((t->getType() != "INT") ||
-																		($6->getType() != "BYTE"))){
-																		errorMismatch(yylineno);
-																		PopAllStacks();
-																		exit(0);
-																	}
-																	string reg;
-																	if(t->getType()=="BOOL"){
-																		reg = register_handler.getAvailReg();
-																		e.booleanRegisterHandle(reg, $6->getTrueList(), $6->getFalseList());
+		| ID LBRACK Exp RBRACK ASSIGN 
+										{
+											if ($3->getType()!="BYTE" && $3->getType()!="INT") {
+												errorMismatch(yylineno);
+												PopAllStacks();
+												exit(0);
+											}
+										}
+										Exp SC
+										{	
+											TEntry* t = findByID($1->getName());
+											if(!t){
+												errorUndef(yylineno, $1->getName());
+												PopAllStacks();
+												exit(0);
+											}
+											
+											if(t->getKind() != Array){
+												errorMismatch(yylineno);
+												PopAllStacks();
+												exit(0);
+											}
+											
+											if((t->getType() != $7->getType())&&((t->getType() != "INT") ||
+												($7->getType() != "BYTE"))){
+												errorMismatch(yylineno);
+												PopAllStacks();
+												exit(0);
+											}
+											string reg;
+											if(t->getType()=="BOOL"){
+												reg = register_handler.getAvailReg();
+												e.booleanRegisterHandle(reg, $7->getTrueList(), $7->getFalseList());
 
-																	}
-																	
-																	e.arrayIsInRange(numberToString(t->getArrSize()), $3->getRegister());
-																	
-																	string resreg = register_handler.getAvailReg();
-																
-																	e.li(resreg, numberToString(t->getOffset()));
-																	e.add(resreg, resreg, $3->getRegister());
-																	e.mul(resreg, resreg, numberToString(STACK_ENTRY_SIZE));
-																	e.sub(resreg, fp_reg, resreg);
-																	if(t->getType()!="BOOL"){
-																		e.sw($6->getRegister(), "(" + resreg + ")");
-																		register_handler.returnRegisterToPool($6->getRegister());
-																	}
-																	else { 
-																		
-																		//e.storeVariable(resreg,t->getOffset());
-																		e.sw(reg, "(" + resreg + ")");
-																		register_handler.returnRegisterToPool(reg);
-																	}
-																	register_handler.returnRegisterToPool(resreg);
-																	register_handler.returnRegisterToPool($3->getRegister());
-																	
-																}
+											}
+											
+											e.arrayIsInRange(numberToString(t->getArrSize()), $3->getRegister());
+											
+											string resreg = register_handler.getAvailReg();
+										
+											e.li(resreg, numberToString(t->getOffset()));
+											e.add(resreg, resreg, $3->getRegister());
+											e.mul(resreg, resreg, numberToString(STACK_ENTRY_SIZE));
+											e.sub(resreg, fp_reg, resreg);
+											if(t->getType()!="BOOL"){
+												e.sw($7->getRegister(), "(" + resreg + ")");
+												register_handler.returnRegisterToPool($7->getRegister());
+											}
+											else { 
+												
+												//e.storeVariable(resreg,t->getOffset());
+												e.sw(reg, "(" + resreg + ")");
+												register_handler.returnRegisterToPool(reg);
+											}
+											register_handler.returnRegisterToPool(resreg);
+											register_handler.returnRegisterToPool($3->getRegister());
+										}
 		| Call SC
 		| RETURN SC {
 			if (funcs_stack.empty() || !funcs_stack.back()) {
@@ -613,6 +617,7 @@ Statement :		LBRACE
 						$$->setWhileList(makelist(line));
 					}
 ;
+
 ElsePart :		/*epsilon*/ %prec IF
 		{
 		foundElse = false;}
