@@ -307,12 +307,12 @@ class emitter {
 		void arrayCopy(TEntry* dest, TEntry* src) {
 			if (dest->getType() != src->getType())
 				return; //-1
-			
+			//cout << "old size is " << rh.getUsedRegisters().size() << endl;
 			//get regs for arrays
 			string srcreg = rh.getAvailReg();
 			string destreg = rh.getAvailReg();
 			string valreg = rh.getAvailReg();
-			
+			//cout << "#" << srcreg << ", " << destreg << ", " << valreg << "." << endl;
 			if (!(srcreg.length()) || !(destreg.length()) || !(valreg.length()))
 				return; //-1
 			
@@ -336,6 +336,7 @@ class emitter {
 			rh.returnRegisterToPool(srcreg);
 			rh.returnRegisterToPool(destreg);
 			rh.returnRegisterToPool(valreg);
+			//cout << "new size is " << rh.getUsedRegisters().size() << endl;
 			
 			return; //0
 		}
