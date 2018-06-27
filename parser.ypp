@@ -337,73 +337,74 @@ Statement :		LBRACE
 																dynamic_cast<TEntry*>($2)->setKind(Array);
 																InsertArray($2->getName(),$1->getType(), number);
 																}
-		| ID ASSIGN Exp SC										{
-																TEntry* t = findByID($1->getName());
-																if(!t){
-																	errorUndef(yylineno, $1->getName());
-																	PopAllStacks();
-																	exit(0);
-																}
-																if (t->getKind() == Array) {
-																	size_t pos = $3->getName().find("[");
-																	if (pos != std::string::npos){
-																		errorMismatch(yylineno); 
-																		PopAllStacks();
-																		exit(0);
-																	}	
-																	TEntry* t2 = findByID($3->getName());
-																	if(!t2){
-																		errorUndef(yylineno, $1->getName());
-																		PopAllStacks();
-																		exit(0);
-																	}
-																	if(t2->getKind() != Array){
-																		errorMismatch(yylineno); 
-																		PopAllStacks();
-																		exit(0);
-																	}
-																	/*size_t pos = $2->getType().find("[");
-																	if (pos != std::string::npos){
-																		errorMismatch(yylineno); 
-																		exit(0);
-																	}*/	
-																	if((t->getType()!=t2->getType()) || 
-																		(t->getArrSize()!=t2->getArrSize())){
-																		errorMismatch(yylineno); 
-																		PopAllStacks();
-																		exit(0);
-																	}
-																	
-																	e.arrayCopy(t, t2);
-																}
-																else if(t->getKind() == Func){
-																		errorUndef(yylineno, $1->getName());
-																		PopAllStacks();
-																		exit(0);
-																}
-																else {
-																	if((t->getType()!=$3->getType()) &&
-																	(t->getType()!="INT" && $3->getType()!="BYTE")){
-																			errorMismatch(yylineno); 
-																			PopAllStacks();
-																			exit(0);
-																		}	
-																	string reg;
-																	if(t->getType()=="INT" || t->getType()=="BYTE"){
-																		reg = $3->getRegister();
-																		e.updateVariable(reg, t->getOffset());
-																		
-																	}
-																	else if(t->getType()=="BOOL"){
-																		reg = register_handler.getAvailReg();
-																		e.booleanRegisterHandle(reg, $3->getTrueList(), $3->getFalseList());
-																		e.updateVariable(reg,t->getOffset());
-																		
-																	}
-																	register_handler.returnRegisterToPool(reg);
-																}
+		| ID ASSIGN Exp SC										
+							{
+								TEntry* t = findByID($1->getName());
+								if(!t){
+									errorUndef(yylineno, $1->getName());
+									PopAllStacks();
+									exit(0);
+								}
+								if (t->getKind() == Array) {
+									size_t pos = $3->getName().find("[");
+									if (pos != std::string::npos){
+										errorMismatch(yylineno); 
+										PopAllStacks();
+										exit(0);
+									}	
+									TEntry* t2 = findByID($3->getName());
+									if(!t2){
+										errorUndef(yylineno, $3->getName());
+										PopAllStacks();
+										exit(0);
+									}
+									if(t2->getKind() != Array){
+										errorMismatch(yylineno); 
+										PopAllStacks();
+										exit(0);
+									}
+									/*size_t pos = $2->getType().find("[");
+									if (pos != std::string::npos){
+										errorMismatch(yylineno); 
+										exit(0);
+									}*/	
+									if((t->getType()!=t2->getType()) || 
+										(t->getArrSize()!=t2->getArrSize())){
+										errorMismatch(yylineno); 
+										PopAllStacks();
+										exit(0);
+									}
+									
+									e.arrayCopy(t, t2);
+								}
+								else if(t->getKind() == Func){
+										errorUndef(yylineno, $1->getName());
+										PopAllStacks();
+										exit(0);
+								}
+								else {
+									if((t->getType()!=$3->getType()) &&
+									(t->getType()!="INT" && $3->getType()!="BYTE")){
+											errorMismatch(yylineno); 
+											PopAllStacks();
+											exit(0);
+										}	
+									string reg;
+									if(t->getType()=="INT" || t->getType()=="BYTE"){
+										reg = $3->getRegister();
+										e.updateVariable(reg, t->getOffset());
+										
+									}
+									else if(t->getType()=="BOOL"){
+										reg = register_handler.getAvailReg();
+										e.booleanRegisterHandle(reg, $3->getTrueList(), $3->getFalseList());
+										e.updateVariable(reg,t->getOffset());
+										
+									}
+									register_handler.returnRegisterToPool(reg);
+								}
 														
-																}
+							}
 
 																
 
