@@ -1080,6 +1080,8 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															$$->setType("BOOL");
 															
 															int nextLine = e.ifInstruction($1->getRegister(), $3->getRegister(), $2->getOp());
+															register_handler.returnRegisterToPool($1->getRegister());
+																register_handler.returnRegisterToPool($3->getRegister());
 															$$->setTrueList(makelist(nextLine));
 															nextLine = e.gotoEmpty();
 															$$->setFalseList(makelist(nextLine));
@@ -1098,6 +1100,8 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																$$->setType("BOOL");
 																
 																int nextLine = e.ifInstruction($1->getRegister(), $3->getRegister(), $2->getOp());
+																register_handler.returnRegisterToPool($1->getRegister());
+																register_handler.returnRegisterToPool($3->getRegister());
 																$$->setTrueList(makelist(nextLine));
 																nextLine = e.gotoEmpty();
 																$$->setFalseList(makelist(nextLine));
