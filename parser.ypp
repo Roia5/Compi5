@@ -51,7 +51,8 @@
 %}
 
 %token VOID INT BYTE B BOOL TRUE FALSE RETURN WHILE BREAK SC COMMA LBRACE RBRACE ID NUM STRING 
-%left OR AND 
+%left OR
+%left AND
 %right NOT
 %nonassoc RELOP_NORMAL
 %left RELOP_EQUAL
@@ -198,27 +199,32 @@ Statements :		Statement	{$$->setNextList($1->getNextList()); one_statement = tru
 					 }	//todo check	
 ;
  
-Statement :		LBRACE {StartScope(); 
-					} Statements {		
-																//cout << "while_stack.back : " << while_stack.back() << endl;
-																//cout << "$3->getWhileList().size() : " << $3->getWhileList().size() << endl;
-																if(while_stack.back()){
-																	e.removeStackAfterScope(getCurrentScopeSize()); 
-																	//cout << "5 curly statement" << endl;
-																	//					PrintTopStack();
-																}
-																ExitScope(); 
-																vector<int> list = $3->getNextList(); 
-																
-																$$->setNextList(list);
-																
-																//$$->setWhileList($3->getWhileList());
-																} RBRACE {//cout << "5" << endl;
-																vector<int> l = $3->getWhileList();
-																//cout << "55" << endl;
-																//cout << "size : " << l.size() << endl;
-																$$->setCurly(true);
-																$$->setWhileList(l);}
+Statement :		LBRACE
+					{ StartScope(); }
+				Statements
+					{		
+						//cout << "while_stack.back : " << while_stack.back() << endl;
+						//cout << "$3->getWhileList().size() : " << $3->getWhileList().size() << endl;
+						if (while_stack.back()) {
+							e.removeStackAfterScope(getCurrentScopeSize()); 
+							//cout << "5 curly statement" << endl;
+							//					PrintTopStack();
+						}
+						ExitScope(); 
+						vector<int> list = $3->getNextList(); 
+						
+						$$->setNextList(list);
+						
+						//$$->setWhileList($3->getWhileList());
+					}
+				RBRACE
+					{//cout << "5" << endl;
+						vector<int> lst = $3->getWhileList();
+						//cout << "55" << endl;
+						//cout << "size : " << l.size() << endl;
+						$$->setCurly(true);
+						$$->setWhileList(lst);
+					}
 		| Type ID SC											{
 																if(isIdentifierExists($2->getName())){
 																	errorDef(yylineno, $2->getName());
