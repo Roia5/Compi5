@@ -25,8 +25,8 @@
 	bool foundElse;
 	string elseLabel;
 	vector<int> elseNextList;
-	string while_start_nextLine;
-	string while_true_nextLine;
+	vector<string> while_start_nextLine;
+	vector<string> while_true_nextLine;
 	int if_N_nextLine;
 	bool one_statement;
 	string returnLabel;
@@ -547,7 +547,7 @@ Statement :		LBRACE {StartScope();
 		
 		| WHILE 
 				{
-					while_start_nextLine = CodeBuffer::instance().genLabel();
+					while_start_nextLine.push_back(CodeBuffer::instance().genLabel());
 				} 
 				LPAREN Exp RPAREN 					
 				{ 
@@ -558,7 +558,7 @@ Statement :		LBRACE {StartScope();
 						exit(0);
 					}
 		
-					while_true_nextLine = CodeBuffer::instance().genLabel();
+					while_true_nextLine.push_back(CodeBuffer::instance().genLabel());
 									
 					while_stack.push_back(true); 
 					StartScope();
@@ -574,8 +574,9 @@ Statement :		LBRACE {StartScope();
 						exit(0);
 					}
 					
-					CodeBuffer::instance().emit("j " + while_start_nextLine);
-					CodeBuffer::instance().bpatch($4->getTrueList(),while_true_nextLine);
+					CodeBuffer::instance().emit("j " + while_start_nextLine.back());
+					CodeBuffer::instance().bpatch($4->getTrueList(),while_true_nextLine.back());
+					while_true_nextLine.pop_back();
 					
 					string while_end_nextLine = CodeBuffer::instance().genLabel();				
 					if($7->getCurly()){
@@ -591,8 +592,8 @@ Statement :		LBRACE {StartScope();
 					
 					CodeBuffer::instance().bpatch($7->getWhileList(),while_end_nextLine);
 					CodeBuffer::instance().bpatch($4->getFalseList(),while_end_bad_nextLine);
-					CodeBuffer::instance().bpatch($7->getNextList(),while_start_nextLine);
-					
+					CodeBuffer::instance().bpatch($7->getNextList(),while_start_nextLine.back());
+					while_start_nextLine.pop_back();
 				}
 				
 		| BREAK SC	{
