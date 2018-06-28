@@ -48,7 +48,7 @@ class emitter {
 				vector<TEntry> func_args = func_ent->getFuncArgs();
 				if (func_args.size() > 0) {
 					int j = argumentRegs.size() - 1, k = 0;
-					for (int i = 0; i < func_args.size(); i++) {
+					for (int i = func_args.size() - 1; i >= 0; i--) {
 						if (func_args[i].getKind() == Var && j >= 0)
 							pushRegister(argumentRegs[j--]);
 						else if (func_args[i].getKind() == Array && k < arrayArgs.size()) {
@@ -151,24 +151,23 @@ class emitter {
 			*/
 		}
 		void pushArrayArgs(string reg, vector<ArrayType> arrayArgs){
-			
-			for(int i=0;i<arrayArgs.size();i++){
+			for(int i=arrayArgs.size()-1;i>=0;i--){
 				storeArray(reg, arrayArgs[i].offset, arrayArgs[i].size);
 			}
 		}
 		void popArrayArgs(vector<ArrayType> arrayArgs){
 			
 			if(arrayArgs.size()==0) return;
-			for(int i=arrayArgs.size()-1;i>=0;i--){
+			for(int i=0;i<arrayArgs.size();i++){
 				freeArray(arrayArgs[i].size);
 			}
 		}
 		void storeArray(string reg, int initialOffset, int length){
 			//(fp),-4(fp),-8(fp)
-			lw(reg, parent_reg(fp_reg));	//x[0]
+			lw(reg, numberToString(-4*initialOffset) + parent_reg(fp_reg));	//x[0]
 			pushRegister(reg);
 			for (int i = 1; i < length; i++) {
-				lw(reg, numberToString(-1*i*STACK_ENTRY_SIZE) + parent_reg(fp_reg));	//x[0]
+				lw(reg, numberToString(-1*i*STACK_ENTRY_SIZE-4*initialOffset) + parent_reg(fp_reg));	//x[0]
 				pushRegister(reg);
 			}
 		}
