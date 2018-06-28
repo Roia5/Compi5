@@ -335,14 +335,11 @@ class emitter {
 			return emit("blt " + idx_reg + ", 0, " + labelOutOfRange);
 		}
 		
-		void arrayCopy(TEntry* dest, TEntry* src) {
+		void arrayCopy(TEntry* dest, TEntry* src, string srcreg, string destreg, string valreg) {
 			if (dest->getType() != src->getType())
 				return; //-1
 			//cout << "old size is " << rh.getUsedRegisters().size() << endl;
 			//get regs for arrays
-			string srcreg = rh.getAvailReg();
-			string destreg = rh.getAvailReg();
-			string valreg = rh.getAvailReg();
 			//cout << "#" << srcreg << ", " << destreg << ", " << valreg << "." << endl;
 			if (!(srcreg.length()) || !(destreg.length()) || !(valreg.length()))
 				return; //-1
@@ -364,9 +361,7 @@ class emitter {
 				sub(destreg, destreg, numberToString(STACK_ENTRY_SIZE));
 			}
 			
-			rh.returnRegisterToPool(srcreg);
-			rh.returnRegisterToPool(destreg);
-			rh.returnRegisterToPool(valreg);
+
 			//cout << "new size is " << rh.getUsedRegisters().size() << endl;
 			
 			return; //0
