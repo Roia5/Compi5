@@ -43,21 +43,52 @@ class emitter {
 			/*for(int i = 0; i < argumentRegs.size(); i++){
 				pushRegister(argumentRegs[i]);
 			}*/
-			for(int i = argumentRegs.size()-1; i >=0; i--){
+			TEntry* func_ent = findByID(name);
+			if (func_ent) {
+				vector<TEntry> func_args = func_ent->getFuncArgs();
+				if (func_args.size() > 0) {
+					int j = argumentRegs.size() - 1, k = 0;
+					for (int i = 0; i < func_args.size(); i++) {
+						if (func_args[i].getKind() == Var && j >= 0)
+							pushRegister(argumentRegs[j--]);
+						else if (func_args[i].getKind() == Array && k < arrayArgs.size()) {
+							storeArray(reg, arrayArgs[k].offset, arrayArgs[k].size);
+							k++;
+						}
+					}
+				}
+			}
+			/*for(int i = argumentRegs.size()-1; i >=0; i--){
 				pushRegister(argumentRegs[i]);
 			}
-			pushArrayArgs(reg, arrayArgs);
+			pushArrayArgs(reg, arrayArgs);*/
 			string real_name = "_" + name + "_";
 			jal(real_name);
 		}
-		void onFunctionReturn(vector<string> argumentRegs, vector<ArrayType> arrayArgs){
-			popArrayArgs(arrayArgs);
+		void onFunctionReturn(string name, vector<string> argumentRegs, vector<ArrayType> arrayArgs){
+			TEntry* func_ent = findByID(name);
+			if (func_ent) {
+				vector<TEntry> func_args = func_ent->getFuncArgs();
+				if (func_args.size() > 0) {
+					int j = 0, k = arrayArgs.size() - 1;
+					for (int i = 0; i < func_args.size(); i++) {
+						if (func_args[i].getKind() == Var && j < argumentRegs.size())
+							popRegister(argumentRegs[j++]);
+						else if (func_args[i].getKind() == Array && k >= 0) {
+							if (arrayArgs[k].size)
+								freeArray(arrayArgs[k].size);
+							k--;
+						}
+					}
+				}
+			}
+			/*popArrayArgs(arrayArgs);
 			/*for(int i=0;i<argumentRegs.size();i++){
 				popRegister(argumentRegs[i]);
-			}*/
+			}*
 			for(int i = 0; i < argumentRegs.size(); i++){
 				popRegister(argumentRegs[i]);
-			}
+			}*/
 			popRegister(ra_reg);
 			popRegister(fp_reg);
 			for(int i = NUM_REGS - 1; i >= 0; i--){

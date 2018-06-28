@@ -655,10 +655,9 @@ Call :		ID LPAREN ExpList
 				returnLabel = CodeBuffer::instance().genLabel();
 				old3 = $3->getType();
 			} RPAREN						{				//e.removeStackAfterScope(getCurrentScopeSize());
-															e.onFunctionReturn(argument_list, array_arg_list);
+															e.onFunctionReturn($1->getName(), argument_list, array_arg_list);
 															for(int i=0;i<argument_list.size();i++){
 																register_handler.returnRegisterToPool(argument_list[i]);
-																
 															}
 													
 															
@@ -725,7 +724,7 @@ Call :		ID LPAREN ExpList
 				returnLabel = CodeBuffer::instance().genLabel();
 			} RPAREN									{vector<string> emptyVec;
 			vector<ArrayType> emptyVec2;
-				e.onFunctionReturn(emptyVec, emptyVec2); 
+				e.onFunctionReturn($1->getName(), emptyVec, emptyVec2); 
 															
 															TEntry* t = findByID($1->getName());
 															if(!t || t->getKind()!=Func){
