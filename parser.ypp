@@ -34,7 +34,7 @@
 	bool is_statement_curly = false;
 	vector<string> argument_list;
 	vector<ArrayType> array_arg_list;
-	string expListReg;
+	string expListReg = "";
 	string old3;
 	int inputCount = 0;
 	string returnTypeFound = "return not done";
@@ -77,13 +77,12 @@ Funcs :		/*epsilon*/
 
 FuncDecl :		RetType ID LPAREN Formals RPAREN {
 													e.funcStart($2->getName());
-													//cout << "function " << $2->getName() << "has scopes : " << getNumOfScopes() << endl;
+													
 													
 													string returnType = $1->getType()+"_"+$4->getType();
-													//cout << "FuncDecl0 scopes : " << getNumOfScopes() << endl;
+													
 													InsertFunction($2->getName(), returnType,$4->getEntryKinds(), $4->getArgNames());
-													//cout << "FuncDecl1 scopes : " << getNumOfScopes() << endl;
-													//cout << "FuncDecl2 scopes : " << getNumOfScopes() << endl;
+													
 													$2->setType(returnType);
 													dynamic_cast<TEntry*>($2)->setKind(Func);
 													if(returnType == "VOID_VOID" && $2->getName()=="main"){
@@ -110,10 +109,10 @@ FuncDecl :		RetType ID LPAREN Formals RPAREN {
 																			else {
 																				e.removeStackAfterScope(getCurrentScopeSize());
 																			}
-																			//cout << "6 functionEnd of " << $2->getName() << endl;
-																			//					PrintTopStack();
+																			
+																			
 																			ExitScope();
-																			//cout << "Exit : function " << $2->getName() << "has scopes : " << getNumOfScopes() << endl;
+																			
 																			e.funcEnd($2->getName());
 																			}
 																			
@@ -191,7 +190,7 @@ FormalDecl :		Type ID										{$$->setType($1->getType());
 ;
 
 Statements :		Statement	{$$->setNextList($1->getNextList()); one_statement = true;
-//cout << "3" << endl;
+
 								if($1->getWhileList().size()!=0){
 									$$->setWhileList($1->getWhileList());
 								}
@@ -200,9 +199,9 @@ Statements :		Statement	{$$->setNextList($1->getNextList()); one_statement = tru
 					string newLabel = CodeBuffer::instance().genLabel();
 					CodeBuffer::instance().bpatch($1->getNextList(),newLabel);}
 		 Statement {$$->setNextList($3->getNextList()); one_statement = false;
-		 			//cout << "4" << endl;
+		 			
 		 			$$->setWhileList(merge($1->getWhileList(),$3->getWhileList()));
-					//cout << "size3 :" << $$->getWhileList().size() << endl;
+					
 					 }	//todo check	
 ;
  
@@ -210,12 +209,10 @@ Statement :		LBRACE
 					{ StartScope(); }
 				Statements
 					{		
-						//cout << "while_stack.back : " << while_stack.back() << endl;
-						//cout << "$3->getWhileList().size() : " << $3->getWhileList().size() << endl;
+						
 						if (while_stack.back()) {
 							e.removeStackAfterScope(getCurrentScopeSize()); 
-							//cout << "5 curly statement" << endl;
-							//					PrintTopStack();
+							
 						}
 						ExitScope(); 
 						vector<int> list = $3->getNextList(); 
@@ -225,10 +222,9 @@ Statement :		LBRACE
 						//$$->setWhileList($3->getWhileList());
 					}
 				RBRACE
-					{//cout << "5" << endl;
+					{
 						vector<int> lst = $3->getWhileList();
-						//cout << "55" << endl;
-						//cout << "size : " << l.size() << endl;
+						
 						$$->setCurly(true);
 						$$->setWhileList(lst);
 					}
@@ -539,7 +535,7 @@ Statement :		LBRACE
 			
 			} 
 		Statement {	if($6->getCurly()){
-						//cout << "here" << endl;
+						
 						e.removeStackAfterScope(getPreviousScopeSize());
 		  }
 		  else {
@@ -656,12 +652,15 @@ Call :		ID LPAREN ExpList
 				array_arg_list = $3->getArrayArgs();
 				string reg = register_handler.getAvailReg();
 				e.onFunctionCall(reg, $1->getName(),argument_list, array_arg_list);
+
 				register_handler.returnRegisterToPool(reg);
 				returnLabel = CodeBuffer::instance().genLabel();
 				old3 = $3->getType();
 			} RPAREN						{				//e.removeStackAfterScope(getCurrentScopeSize());
+															
 															e.onFunctionReturn(argument_list, array_arg_list);
 															for(int i=0;i<argument_list.size();i++){
+																
 																register_handler.returnRegisterToPool(argument_list[i]);
 																
 															}
@@ -805,7 +804,7 @@ ExpList :		Exp											{
 																
 															}
 															else if($1->getType().find("[") != std::string::npos) {	//isArray
-																
+																expListReg = "";
 																ArrayType t;
 																t.size = ($1->getArrSize());
 																t.offset = ($1->getArrOffset());
@@ -814,11 +813,14 @@ ExpList :		Exp											{
 															else {
 																expListReg = $1->getRegister();
 															}
+
 															}
 			ExpList											{
-															$$->addRegisterToList(expListReg);
+															if(expListReg != "")
+																$$->addRegisterToList(expListReg);
 															$$->setType($1->getType() + "," + $4->getType());
 															vector<string> list = $4->getRegisterList();
+															
 															for(int i=0;i<list.size();i++){
 																$$->addRegisterToList(list[i]);
 															}
@@ -829,6 +831,7 @@ ExpList :		Exp											{
 																
 																$$->addArrayArg(list2[i]);
 															}
+
 															}
 ;
 
