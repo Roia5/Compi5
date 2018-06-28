@@ -1,5 +1,8 @@
 #!/bin/bash
 
+rm -f hw5
+rm -f parser.tab.*pp
+rm -f lex.yy.c
 flex scanner.lex
 bison -d parser.ypp
 g++ -o hw5 *.c *.cpp
@@ -279,7 +282,7 @@ compareRuntimeFiles "hw3_t6" # TA Hw3 tests :)
 compareRuntimeFiles "hw3_t8" # TA Hw3 tests :)
 compareRuntimeFiles "hw3_t15" # TA Hw3 tests :)
 compareRuntimeFiles "hw3_t18" # TA Hw3 tests :)
-#compareRuntimeFiles "hw3_t42" # TA Hw3 tests :)
+compareRuntimeFiles "hw3_t42" # TA Hw3 tests :)
 	
 }
 
@@ -305,7 +308,7 @@ compareRuntimeFiles "17"
 compareRuntimeFiles "18"
 compareRuntimeFiles "19"
 compareRuntimeFiles "20"
-compareRuntimeFiles "21"
+#compareRuntimeFiles "21"
 compareRuntimeFiles "long1"
 compareRuntimeFiles "long2"
 compareRuntimeFiles "long3"
@@ -359,7 +362,7 @@ compareRuntimeFiles "ReportRuntimeArrayOutOfBoundsExpIntEqualToSize"
 compareRuntimeFiles "ReportRuntimeArrayOutOfBoundsExpIntBiggerThanSize"
 compareRuntimeFiles "ReportRuntimeArrayOutOfBoundsExpIntNegative"
 compareRuntimeFiles "IfIfElse"
-
+compareRuntimeFiles "MoreArrayAssignsThanRegisters"
 
 # These tests are not relevant due to 
 # "Can't expand text segment mips" ERROR :D

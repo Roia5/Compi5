@@ -307,16 +307,8 @@ Statement :		LBRACE
 																InsertArray($2->getName(),$1->getType(), number);
 
 																string reg = register_handler.getAvailReg();
-																			
-																if($1->getType() == "INT" || $1->getType() == "BYTE"){
-																	e.li(reg,"0");
-																	e.initArray(reg,$4->getIntVal());
-																}
-																else {
-																	e.li(reg,"0");
-																	e.initArray(reg,$4->getIntVal());
-																}
-																
+																e.li(reg,"0");
+																e.initArray(reg,$4->getIntVal());
 																register_handler.returnRegisterToPool(reg);
 																			
 																}
@@ -341,6 +333,12 @@ Statement :		LBRACE
 																$2->setType($1->getType() + "[" + valString + "]");
 																dynamic_cast<TEntry*>($2)->setKind(Array);
 																InsertArray($2->getName(),$1->getType(), number);
+																
+																string reg = register_handler.getAvailReg();
+																e.li(reg,"0");
+																e.initArray(reg,$4->getIntVal());
+																register_handler.returnRegisterToPool(reg);
+																
 																}
 		| ID ASSIGN Exp SC										
 							{
