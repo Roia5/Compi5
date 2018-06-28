@@ -31,7 +31,7 @@
 	bool one_statement;
 	string returnLabel;
 
-	//bool is_statement_curly = false;
+	bool is_statement_curly = false;
 	vector<string> argument_list;
 	vector<ArrayType> array_arg_list;
 	string expListReg;
@@ -104,7 +104,12 @@ FuncDecl :		RetType ID LPAREN Formals RPAREN {
 																					}
 																				}
 																				returnTypeFound = "return not done";
-																			e.removeStackAfterScope(getCurrentScopeSize());
+																								if($8->getCurly()){
+																				e.removeStackAfterScope(getPreviousScopeSize());
+																			}
+																			else {
+																				e.removeStackAfterScope(getCurrentScopeSize());
+																			}
 																			//cout << "6 functionEnd of " << $2->getName() << endl;
 																			//					PrintTopStack();
 																			ExitScope();
