@@ -1083,8 +1083,8 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 															$$->setTrueList(makelist(nextLine));
 															nextLine = e.gotoEmpty();
 															$$->setFalseList(makelist(nextLine));
-															
-															
+															register_handler.returnRegisterToPool($1->getRegister());
+															register_handler.returnRegisterToPool($3->getRegister());
 															}
 
 		| Exp RELOP_EQUAL Exp 								{
@@ -1101,6 +1101,8 @@ Exp :		LPAREN Exp RPAREN								{$$->setType($2->getType());
 																$$->setTrueList(makelist(nextLine));
 																nextLine = e.gotoEmpty();
 																$$->setFalseList(makelist(nextLine));
+																register_handler.returnRegisterToPool($1->getRegister());
+																register_handler.returnRegisterToPool($3->getRegister());
 															}
 ;
 
