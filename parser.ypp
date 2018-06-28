@@ -378,7 +378,13 @@ Statement :		LBRACE
 										exit(0);
 									}
 									
-									e.arrayCopy(t, t2);
+									string reg1 = register_handler.getAvailReg();
+									string reg2 = register_handler.getAvailReg();
+									string reg3 = register_handler.getAvailReg();
+									e.arrayCopy(t, t2, reg1, reg2, reg3);
+									register_handler.returnRegisterToPool(reg1);
+									register_handler.returnRegisterToPool(reg2);
+									register_handler.returnRegisterToPool(reg3);
 								}
 								else if(t->getKind() == Func){
 										errorUndef(yylineno, $1->getName());

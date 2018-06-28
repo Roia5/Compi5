@@ -165,7 +165,7 @@ class emitter {
 		}
 		void storeArray(string reg, int initialOffset, int length){
 			//(fp),-4(fp),-8(fp)
-			lw(reg, fp_reg);	//x[0]
+			lw(reg, parent_reg(fp_reg));	//x[0]
 			pushRegister(reg);
 			for (int i = 1; i < length; i++) {
 				lw(reg, numberToString(-1*i*STACK_ENTRY_SIZE) + parent_reg(fp_reg));	//x[0]
